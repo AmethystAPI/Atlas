@@ -1,3 +1,3 @@
-# Vanilla2
+# AdvancedF3
 
-The second Minecraft Revolution has come and brought us many new cool possibilities to mod our most beloved game.
+A mod adding an Advanced-F3 Debug Screen to MCBE
