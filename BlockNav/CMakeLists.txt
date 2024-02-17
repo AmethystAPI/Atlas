@@ -42,12 +42,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${AMETHYST_API})
 target_link_libraries(${PROJECT_NAME} PRIVATE "${AmethystFolder}/lib/fmt.lib")
 target_link_libraries(${PROJECT_NAME} PRIVATE "${AmethystFolder}/lib/libhat.lib")
 
-# Code Style
-add_custom_target(ClangFormat
-    COMMAND clang-format
-    -i
-    ${CPP_SOURCES} ${H_FILES}
-)
-
 # Write a mod.json file to provide meta data about the mod
 configure_file(mod.json.in "${AmethystFolder}/mods/${PROJECT_NAME}@${MOD_VERSION}/mod.json" @ONLY)

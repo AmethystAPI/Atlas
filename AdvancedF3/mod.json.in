@@ -1,7 +1,7 @@
 {
   "meta": {
-    "name": "AdvancedF3",
-    "version": "1.0.0",
-    "author": "Adrian8115"
+    "name": "@PROJECT_NAME@",
+    "version": "@MOD_VERSION@",
+    "author": "@MOD_AUTHOR@"
   }
 }

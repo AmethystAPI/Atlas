@@ -12,3 +12,10 @@ add_subdirectory(AdvancedF3)
 
 # Add BlockNav subfolder as a subdirectory
 add_subdirectory(BlockNav)
+
+# Code Style
+add_custom_target(ClangFormat
+        COMMAND clang-format
+        -i
+        ${CPP_SOURCES} ${H_FILES}
+)
