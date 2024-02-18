@@ -10,64 +10,63 @@
 #include <minecraft/src/common/world/level/BlockPos.h>
 #include <minecraft/src/common/world/level/block/Block.h>
 #include <minecraft/src/common/world/level/block/BlockLegacy.h>
+#include <minecraft/src-client/common/client/renderer/helpers/MeshHelpers.h>
 
-void MiniMapRenderer::Renderer(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContext, ClientInstance* clientInstance)
+// The vertexes for two triangles on a unit square
+// In clock-wise order
+Vec3 vertexes[6] = {
+    Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f),
+    Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f)
+};
+
+void MiniMapRenderer::Renderer(ScreenView* screenView, MinecraftUIRenderContext* ctx)
 {
-    Vec2 uiScreenSize = clientInstance->guiData->clientUIScreenSize;
-    Vec3* playerPos = clientInstance->getLocalPlayer()->getPosition();
+    ClientInstance* ci = ctx->mClient;
+    LocalPlayer* player = ci->getLocalPlayer();
 
-    BlockSource* region = clientInstance->getRegion();
+    // Still loading into the world!
+    if (player == nullptr) return;
 
-    int offset = UiConfig::offset;
-    mce::Color* bg_color = UiConfig::background_color;
+    // Minimap options
+    Vec2 minimapScreenSize = Vec2(128.0f, 128.0f);
+    int widthInBlocks = 128;
+    float pixelsPerBlock = (float)minimapScreenSize.x / widthInBlocks;
 
-    Vec2 size = Vec2(125, 125);
+    // Placement of the minimap on the screen
+    Vec2 uiScreenSize = ci->guiData->clientUIScreenSize;
+    float left = uiScreenSize.x - minimapScreenSize.x - UiConfig::offset;
+    float bottom = UiConfig::offset + minimapScreenSize.y;
 
-    // make smaller to get more detail
-    float detail = 2.0f;
+    // Position the player in the center of the map
+    Vec3* playerPos = player->getPosition();
+    int mapMinX = (int)playerPos->x - widthInBlocks / 2;
+    int mapMinZ = (int)playerPos->z - widthInBlocks / 2;
+    int playerY = (int)playerPos->y;
 
-    float start_x = uiScreenSize.x - size.x - offset;
-    float start_y = static_cast<float>(offset);
-    float end_x = uiScreenSize.x - offset;
-    float end_y = size.y + offset;
+    BlockSource* region = ci->getRegion();
+    Tessellator* tes = &ctx->mScreenContext->tessellator;
+    tes->begin(mce::TriangleList, widthInBlocks * widthInBlocks);
+    tes->mNoColor = false;
 
-    auto bg_area = RectangleArea(
-        start_x,
-        end_x,
-        start_y,
-        end_y);
+    for (int x = 0; x < widthInBlocks; x++) {
+        for (int y = 0; y < widthInBlocks; y++) {
+            float pixelLeft = left + x * pixelsPerBlock;
+            float pixelBottom = bottom - y * pixelsPerBlock;
 
-    uiRenderContext->drawRectangle(
-        &bg_area,
-        bg_color,
-        UiConfig::background_color_alpha,
-        0);
+            // This data urgently needs to be cached, this is not good
+            mce::Color color = NormalMode::getColorFromPos(mapMinX + x, playerY, mapMinZ + y, region);
+            tes->color(color.r, color.g, color.b, 1);
 
-    int max_y = static_cast<int>((size.y - static_cast<float>(offset) * 2) / detail);
-    int max_x = static_cast<int>((size.x - static_cast<float>(offset) * 2) / detail);
+            for (Vec3 vertex : vertexes) {
+                float vertexX = vertex.x * pixelsPerBlock + pixelLeft;
+                float vertexY = vertex.y * pixelsPerBlock + pixelBottom;
 
-    for (int y = 0; y < max_y; ++y) {
-        for (int x = 0; x < max_x; ++x) {
-            int pl_x = static_cast<int>(playerPos->x) - x + max_x / 2;
-            int pl_y = static_cast<int>(playerPos->y)-2;
-            int pl_z = static_cast<int>(playerPos->z) - y + max_y / 2;
-
-            //mce::Color color = NormalMode::getColorFromPos(pl_x, pl_y, pl_z, region);
-            //mce::Color color = SliceDepthMode::getColorFromPos(pl_x, pl_y, pl_z, region);
-            mce::Color color = SliceMode::getColorFromPos(pl_x, pl_y, pl_z, region);
-
-            auto area = RectangleArea(
-                start_x + static_cast<float>(offset) + static_cast<float>(x * detail),
-                start_x + static_cast<float>(offset) + static_cast<float>((x + 1) * detail),
-                start_y + static_cast<float>(offset) + static_cast<float>(y * detail),
-                start_y + static_cast<float>(offset) + static_cast<float>((y + 1) * detail)
-                );
-
-            uiRenderContext->drawRectangle(
-                &area,
-                &color,
-                1.0f,
-                10);
+                tes->vertex(vertexX, vertexY, 0);
+            }
         }
     }
+
+    // We need to find another material because this one goes black when it is showing a hover outline
+    mce::MaterialPtr* mat = *reinterpret_cast<mce::MaterialPtr**>(SlideAddress(0x572A440));
+    MeshHelpers::renderMeshImmediately(ctx->mScreenContext, tes, mat);
 }
