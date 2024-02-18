@@ -1,5 +1,4 @@
 ﻿#include "dllmain.h"
-#include "ui/minimap/minimapRenderer.h"
 #include "ui/f3/f3Renderer.h"
 #include "recorder/ps_recorder/psRecorder.h"
 
@@ -15,9 +14,6 @@ ModFunction void Initialize(HookManager* hookManager, Amethyst::EventManager* ev
 
     // Add a listener to key inputs
     // https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
-    inputManager->RegisterInput("use_map", 0x4D);
-    inputManager->AddButtonDownHandler("use_map", onUseMap);
-
     inputManager->RegisterInput("use_f3", 0x72);
     inputManager->AddButtonDownHandler("use_f3", &onUseF3);
 
@@ -28,8 +24,6 @@ ModFunction void Initialize(HookManager* hookManager, Amethyst::EventManager* ev
     eventManager->onRenderUI.AddListener(&onRenderUi);
 
     psRecorder::registerEventHandlers(eventManager);
-
-
 
     std::cout << "hwinfo is an open source, MIT licensed project that implements a platform independent "
               << "hardware and system information gathering API for C++.\n\n"
@@ -62,7 +56,7 @@ ModFunction void Initialize(HookManager* hookManager, Amethyst::EventManager* ev
             std::cout << std::left << std::setw(20) << "   Thread " + std::to_string(thread_id) + ": ";
             std::cout << threads_speed[thread_id] << " MHz (" << threads_utility[thread_id] * 100 << "%)" << std::endl;
         }
-        // std::cout << cpu.currentTemperature_Celsius() << std::endl;
+        std::cout << cpu.id() << std::endl;
     }
 
     hwinfo::OS os;
@@ -195,20 +189,10 @@ void onRequestLeaveGame(){
 void onRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContext)
 {
     if (screenView->visualTree->mRootControlName->layerName == "hud_screen") {
-        if (map_open) {
-            MiniMapRenderer::Renderer(screenView, uiRenderContext, client);
-        }
-
         if (f3_open) {
             f3Renderer::Renderer(screenView, uiRenderContext, client);
         }
     }
-}
-
-
-void onUseMap(FocusImpact focus, IClientInstance clientInstance){
-    map_open = !map_open;
-    Log::Info("Map");
 }
 
 void onUseF3(FocusImpact focus, IClientInstance clientInstance){
