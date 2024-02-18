@@ -20,8 +20,7 @@ include_directories(${AmethystFolder}/include "include/")
 # Project Files
 file(GLOB_RECURSE CPP_SOURCES "src/*.cpp")
 file(GLOB_RECURSE H_FILES "src/*.h" )
-add_library(${PROJECT_NAME} SHARED ${CPP_SOURCES} ${H_FILES}
-)
+add_library(${PROJECT_NAME} SHARED ${CPP_SOURCES} ${H_FILES})
 
 # EnTT Config Options
 target_compile_definitions(${PROJECT_NAME} PUBLIC ENTT_PACKED_PAGE=128)
