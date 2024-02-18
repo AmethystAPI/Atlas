@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.27.0)
 
 # Set Project Name
-project(Bedrock-Insights)
+project(Bedrock-Insights-Mono)
 
 # Set C++ Standard
 set(CMAKE_CXX_STANDARD 23)
