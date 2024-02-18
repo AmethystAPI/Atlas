@@ -9,5 +9,5 @@
 
 class MiniMapRenderer {
 public:
-    static void Renderer(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContext, ClientInstance* clientInstance);
+    static void Renderer(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContext);
 };

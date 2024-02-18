@@ -16,4 +16,4 @@ void onRequestLeaveGame();
 
 void onRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContext);
 
-void onUseMap(FocusImpact focus, IClientInstance clientInstance);
+void toggleMapVisibility(FocusImpact focus, IClientInstance clientInstance);
