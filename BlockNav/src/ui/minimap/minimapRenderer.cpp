@@ -4,6 +4,9 @@
 
 #include "minimapRenderer.h"
 #include "../config/UiConfig.h"
+#include "modes_renderer/NormalMode.h"
+#include "modes_renderer/SliceDepthMode.h"
+#include "modes_renderer/SliceMode.h"
 #include <minecraft/src/common/world/level/BlockPos.h>
 #include <minecraft/src/common/world/level/block/Block.h>
 #include <minecraft/src/common/world/level/block/BlockLegacy.h>
@@ -21,7 +24,7 @@ void MiniMapRenderer::Renderer(ScreenView* screenView, MinecraftUIRenderContext*
     Vec2 size = Vec2(125, 125);
 
     // make smaller to get more detail
-    float detail = 2;
+    float detail = 2.0f;
 
     float start_x = uiScreenSize.x - size.x - offset;
     float start_y = static_cast<float>(offset);
@@ -45,21 +48,20 @@ void MiniMapRenderer::Renderer(ScreenView* screenView, MinecraftUIRenderContext*
 
     for (int y = 0; y < max_y; ++y) {
         for (int x = 0; x < max_x; ++x) {
-            const BlockPos pos = BlockPos(
-                static_cast<int>(playerPos->x) - x,
-                static_cast<int>(playerPos->y)-2,
-                static_cast<int>(playerPos->z) - y
-            );
+            int pl_x = static_cast<int>(playerPos->x) - x + max_x / 2;
+            int pl_y = static_cast<int>(playerPos->y)-2;
+            int pl_z = static_cast<int>(playerPos->z) - y + max_y / 2;
 
-            const Block block = region->getBlock(pos);
-
-            mce::Color color = block.mLegacyBlock->getMapColor(*region, pos, block);
+            //mce::Color color = NormalMode::getColorFromPos(pl_x, pl_y, pl_z, region);
+            //mce::Color color = SliceDepthMode::getColorFromPos(pl_x, pl_y, pl_z, region);
+            mce::Color color = SliceMode::getColorFromPos(pl_x, pl_y, pl_z, region);
 
             auto area = RectangleArea(
                 start_x + static_cast<float>(offset) + static_cast<float>(x * detail),
                 start_x + static_cast<float>(offset) + static_cast<float>((x + 1) * detail),
                 start_y + static_cast<float>(offset) + static_cast<float>(y * detail),
-                start_y + static_cast<float>(offset) + static_cast<float>((y + 1) * detail));
+                start_y + static_cast<float>(offset) + static_cast<float>((y + 1) * detail)
+                );
 
             uiRenderContext->drawRectangle(
                 &area,
