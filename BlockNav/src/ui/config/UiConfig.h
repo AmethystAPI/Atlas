@@ -12,6 +12,6 @@
 class UiConfig {
 public:
     static int offset;
-    static mce::Color background_color;
+    static mce::Color* background_color;
     static float background_color_alpha;
 };

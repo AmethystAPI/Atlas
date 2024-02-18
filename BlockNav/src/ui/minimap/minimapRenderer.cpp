@@ -16,7 +16,7 @@ void MiniMapRenderer::Renderer(ScreenView* screenView, MinecraftUIRenderContext*
     BlockSource* region = clientInstance->getRegion();
 
     int offset = UiConfig::offset;
-    mce::Color color = UiConfig::background_color;
+    mce::Color* bg_color = UiConfig::background_color;
 
     Vec2 size = Vec2(125, 125);
 
@@ -36,7 +36,7 @@ void MiniMapRenderer::Renderer(ScreenView* screenView, MinecraftUIRenderContext*
 
     uiRenderContext->drawRectangle(
         &bg_area,
-        &color,
+        bg_color,
         UiConfig::background_color_alpha,
         0);
 
@@ -45,6 +45,15 @@ void MiniMapRenderer::Renderer(ScreenView* screenView, MinecraftUIRenderContext*
 
     for (int y = 0; y < max_y; ++y) {
         for (int x = 0; x < max_x; ++x) {
+            const BlockPos pos = BlockPos(
+                static_cast<int>(playerPos->x) - x,
+                static_cast<int>(playerPos->y)-2,
+                static_cast<int>(playerPos->z) - y
+            );
+
+            const Block block = region->getBlock(pos);
+
+            mce::Color color = block.mLegacyBlock->getMapColor(*region, pos, block);
 
             auto area = RectangleArea(
                 start_x + static_cast<float>(offset) + static_cast<float>(x * detail),
@@ -54,7 +63,7 @@ void MiniMapRenderer::Renderer(ScreenView* screenView, MinecraftUIRenderContext*
 
             uiRenderContext->drawRectangle(
                 &area,
-                &mce::Color::WHITE,
+                &color,
                 1.0f,
                 10);
         }

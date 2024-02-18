@@ -40,9 +40,9 @@ void f3Renderer::Renderer(ScreenView* screenView, MinecraftUIRenderContext* uiRe
 
     Vec2 uiScreenSize = clientInstance->guiData->clientUIScreenSize;
 
-    //TextVectorRenderer::TextVectorTopLeftRenderer(screenView, uiRenderContext, info_data, uiScreenSize);
-    //TextVectorRenderer::TextVectorTopRightRenderer(screenView, uiRenderContext, control_data, uiScreenSize);
+    TextVectorRenderer::TextVectorTopLeftRenderer(screenView, uiRenderContext, info_data, uiScreenSize);
+    TextVectorRenderer::TextVectorTopRightRenderer(screenView, uiRenderContext, control_data, uiScreenSize);
 
-    //TextVectorRenderer::TextVectorBottomLeftRenderer(screenView, uiRenderContext, extra_data, uiScreenSize);
-    //TextVectorRenderer::TextVectorBottomRightRenderer(screenView, uiRenderContext, tool_tips, uiScreenSize);
+    TextVectorRenderer::TextVectorBottomLeftRenderer(screenView, uiRenderContext, extra_data, uiScreenSize);
+    TextVectorRenderer::TextVectorBottomRightRenderer(screenView, uiRenderContext, tool_tips, uiScreenSize);
 }
