@@ -21,5 +21,4 @@ void onRequestLeaveGame();
 
 void onRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContext);
 
-void onUseMap(FocusImpact focus, IClientInstance clientInstance);
 void onUseF3(FocusImpact focus, IClientInstance clientInstance);
