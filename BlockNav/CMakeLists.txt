@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 project(Vanilla2)
 set(MOD_VERSION "1.0.0")
-set(MOD_AUTHOR "Adrian8115")
+set(MOD_AUTHOR "Adrian8115, FrederoxDev")
 set(PROJECT_NAME "BlockNav")
 
 # Define only RelWithDebInfo as the available build configuration
