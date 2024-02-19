@@ -29,7 +29,7 @@ void MiniMapRenderer::Renderer(ScreenView* screenView, MinecraftUIRenderContext*
 
     // Minimap options
     Vec2 minimapScreenSize = Vec2(128.0f, 128.0f);
-    int widthInBlocks = 128;
+    int widthInBlocks = 128*2;
     float pixelsPerBlock = (float)minimapScreenSize.x / widthInBlocks;
 
     // Placement of the minimap on the screen
@@ -54,7 +54,7 @@ void MiniMapRenderer::Renderer(ScreenView* screenView, MinecraftUIRenderContext*
             float pixelBottom = bottom - y * pixelsPerBlock;
 
             // This data urgently needs to be cached, this is not good
-            mce::Color color = NormalMode::getColorFromPos(mapMinX + x, playerY, mapMinZ + y, region);
+            mce::Color color = NormalMode::getColorFromPosCached(mapMinX + x, playerY, mapMinZ + y, region);
             tes->color(color.r, color.g, color.b, 1);
 
             for (Vec3 vertex : vertexes) {
