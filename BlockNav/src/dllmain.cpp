@@ -1,7 +1,7 @@
 ﻿#include "dllmain.h"
 #include "ui/minimap/minimapRenderer.h"
 
-bool map_open = true;
+bool map_open = false;
 
 // Ran when the mod is loaded into the game by AmethystRuntime
 ModFunction void Initialize(HookManager* hookManager, Amethyst::EventManager* eventManager, InputManager* inputManager)
@@ -12,8 +12,8 @@ ModFunction void Initialize(HookManager* hookManager, Amethyst::EventManager* ev
 
     // Inputs don't seem to work with amethysts hot reloading
     // Removing for now... will add back later!
-    /*inputManager->RegisterInput("use_map", 0x4D);
-    inputManager->AddButtonDownHandler("use_map", toggleMapVisibility);*/
+    inputManager->RegisterInput("use_map", 0x4D);
+    inputManager->AddButtonDownHandler("use_map", toggleMapVisibility);
 
     // Add a listener to a built-in amethyst event
     eventManager->onRequestLeaveGame.AddListener(onRequestLeaveGame);
