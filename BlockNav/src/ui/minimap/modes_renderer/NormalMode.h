@@ -10,5 +10,6 @@
 class NormalMode {
 public:
     static mce::Color getColorFromPos(int x, int player_y, int z, BlockSource* region);
+    static mce::Color getColorFromPosCached(int x, int player_y, int z, BlockSource* region);
 };
 
