@@ -2,9 +2,7 @@
 #include "ui/f3/f3Renderer.h"
 #include "recorder/ps_recorder/psRecorder.h"
 
-ClientInstance* client = nullptr;
-bool map_open = false;
-bool f3_open = false;
+bool f3_open = true;
 
 // Ran when the mod is loaded into the game by AmethystRuntime
 ModFunction void Initialize(HookManager* hookManager, Amethyst::EventManager* eventManager, InputManager* inputManager) 
@@ -14,18 +12,15 @@ ModFunction void Initialize(HookManager* hookManager, Amethyst::EventManager* ev
 
     // Add a listener to key inputs
     // https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
-    inputManager->RegisterInput("use_f3", 0x72);
-    inputManager->AddButtonDownHandler("use_f3", &onUseF3);
+    /*inputManager->RegisterInput("use_f3", 0x72);
+    inputManager->AddButtonDownHandler("use_f3", &onUseF3);*/
 
     //// Add a listener to a built-in amethyst event
-    eventManager->onStartJoinGame.AddListener(&OnStartJoinGame);
-    eventManager->onRequestLeaveGame.AddListener(onRequestLeaveGame);
-
     eventManager->onRenderUI.AddListener(&onRenderUi);
 
     psRecorder::registerEventHandlers(eventManager);
 
-    std::cout << "hwinfo is an open source, MIT licensed project that implements a platform independent "
+    /*std::cout << "hwinfo is an open source, MIT licensed project that implements a platform independent "
               << "hardware and system information gathering API for C++.\n\n"
               << "If you face any issues, find bugs or if your platform is not supported yet, do not hesitate to create "
               << "a ticket at https://github.com/lfreist/hwinfo/issues.\n\n"
@@ -165,37 +160,17 @@ ModFunction void Initialize(HookManager* hookManager, Amethyst::EventManager* ev
         std::cout << "No Disks installed or detected" << std::endl;
     }
 
-    Log::Info("THAT'S IT...");
+    Log::Info("THAT'S IT...");*/
 
-}
-
-// Subscribed to amethysts on start join game event in Initialize
-void OnStartJoinGame(ClientInstance* clientInstance)
-{
-    client = clientInstance;
-
-    Log::Info("The player has joined the game!");
-
-
-}
-
-void onRequestLeaveGame(){
-    Log::Info("The player has top_left the game!");
-
-    map_open = false;
-    f3_open = false;
 }
 
 void onRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContext)
 {
-    if (screenView->visualTree->mRootControlName->layerName == "hud_screen") {
-        if (f3_open) {
-            f3Renderer::Renderer(screenView, uiRenderContext, client);
-        }
+    if (screenView->visualTree->mRootControlName->layerName == "hud_screen" && f3_open) {
+        f3Renderer::Renderer(screenView, uiRenderContext);
     }
 }
 
 void onUseF3(FocusImpact focus, IClientInstance clientInstance){
     f3_open = !f3_open;
-    Log::Info("F3");
 }
