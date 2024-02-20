@@ -4,9 +4,6 @@
 
 #include "minimapRenderer.h"
 #include "../config/UiConfig.h"
-#include "modes_renderer/NormalMode.h"
-#include "modes_renderer/SliceDepthMode.h"
-#include "modes_renderer/SliceMode.h"
 #include <minecraft/src/common/world/level/BlockPos.h>
 #include <minecraft/src/common/world/level/block/Block.h>
 #include <minecraft/src/common/world/level/block/BlockLegacy.h>
@@ -140,13 +137,13 @@ void Minimap::Render(ScreenView* screenView, MinecraftUIRenderContext* ctx)
     Vec2 uiScreenSize = ci->guiData->clientUIScreenSize;
 
     // Minimap options
-    Vec2 minimapScreenSize = Vec2(120.0f, 120.0f);
+    Vec2 minimapScreenSize = Vec2(135.0f, 135.0f);
     int widthInBlocks = mRenderDistance * 2 * 16;
     float pixelsPerBlock = (float)minimapScreenSize.x / widthInBlocks;
 
     // Placement of the minimap on the screen
-    float left = uiScreenSize.x - minimapScreenSize.x - UiConfig::offset;
-    float bottom = UiConfig::offset + minimapScreenSize.y;
+    float left = uiScreenSize.x - minimapScreenSize.x - UiConfig::offset * 2;
+    float bottom = UiConfig::offset * 2 + minimapScreenSize.y;
 
     // Position the player in the center of the map
     Vec3* playerPos = player->getPosition();
