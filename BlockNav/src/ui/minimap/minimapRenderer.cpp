@@ -145,6 +145,21 @@ void Minimap::Render(ScreenView* screenView, MinecraftUIRenderContext* ctx)
     float left = uiScreenSize.x - minimapScreenSize.x - UiConfig::offset * 2;
     float bottom = UiConfig::offset * 2 + minimapScreenSize.y;
 
+    RectangleArea bg_area = RectangleArea(
+        uiScreenSize.x - UiConfig::offset * 3 - minimapScreenSize.x,
+        uiScreenSize.x - UiConfig::offset,
+        UiConfig::offset,
+        UiConfig::offset * 3 + minimapScreenSize.y
+        );
+
+    //Draw Background of Minimap
+    ctx->drawRectangle(
+        &bg_area,
+        UiConfig::background_color,
+        UiConfig::background_color_alpha,
+        0
+        );
+
     // Position the player in the center of the map
     Vec3* playerPos = player->getPosition();
     int mapMinX = (int)playerPos->x - widthInBlocks / 2;
@@ -153,6 +168,7 @@ void Minimap::Render(ScreenView* screenView, MinecraftUIRenderContext* ctx)
 
     BlockSource* region = ci->getRegion();
     Tessellator* tes = &ctx->mScreenContext->tessellator;
+
     tes->begin(mce::TriangleList, widthInBlocks * widthInBlocks);
     tes->mNoColor = false;
 
@@ -188,8 +204,10 @@ void Minimap::Render(ScreenView* screenView, MinecraftUIRenderContext* ctx)
     }
 
     // We need to find another material because this one goes black when it is showing a hover outline
-    mce::MaterialPtr* mat = *reinterpret_cast<mce::MaterialPtr**>(SlideAddress(0x572A440));
-    MeshHelpers::renderMeshImmediately(ctx->mScreenContext, tes, mat);
+    HashedString hashedMaterialName("entity_static");
+    mce::MaterialPtr material(*mce::RenderMaterialGroup::switchable, hashedMaterialName);
+
+    MeshHelpers::renderMeshImmediately(ctx->mScreenContext, tes, &material);
 }
 
 void Minimap::OnLeaveGame() {
