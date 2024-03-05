@@ -203,10 +203,11 @@ void Minimap::Render(ScreenView* screenView, MinecraftUIRenderContext* ctx)
         }
     }
 
-    // We need to find another material because this one goes black when it is showing a hover outline
+    // Get material
     HashedString hashedMaterialName("entity_static");
     mce::MaterialPtr material(*mce::RenderMaterialGroup::switchable, hashedMaterialName);
 
+    // Draw everything
     MeshHelpers::renderMeshImmediately(ctx->mScreenContext, tes, &material);
 }
 
