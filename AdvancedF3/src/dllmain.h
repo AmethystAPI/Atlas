@@ -4,11 +4,9 @@
 #include <amethyst/HookManager.h>
 #include <amethyst/InputManager.h>
 
-#include <hwinfo/hwinfo.h>
 #include <iomanip>
 #include <iostream>
 #include <vector>
-#include "hwinfo/utils/PCIMapper.h"
 
 #define ModFunction extern "C" __declspec(dllexport)
 
