@@ -5,14 +5,13 @@
 #include "HeightMapCalc.h"
 #include <minecraft/src/common/world/level/block/Block.h>
 
-int HeightMapCalc::getHeightMap(int x, int z, BlockSource* region)
+
+std::optional<int> HeightMapCalc::getHeightMap(int x, int z, BlockSource* region)
 {
     int max_y = region->getMaxHeight();
     int min_y = region->getMinHeight();
 
-    int diff = max_y - min_y;
-
-    for (int y = diff; y > 0; --y) {
+    for (int y = max_y; y > min_y; --y) {
         Block block = region->getBlock(x, y, z);
 
         if (block.mLegacyBlock->mID != 0) {
@@ -21,7 +20,8 @@ int HeightMapCalc::getHeightMap(int x, int z, BlockSource* region)
         else {
             continue;
         }
+
     }
 
-    return min_y;
+    return std::nullopt;
 }

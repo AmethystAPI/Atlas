@@ -1,5 +1,5 @@
 ﻿#include "dllmain.h"
-#include "ui/minimap/minimapRenderer.h"
+#include "minimap/minimapRenderer.h"
 
 Minimap minimap;
 bool map_open = true;
@@ -11,8 +11,13 @@ ModFunction void Initialize(HookManager* hookManager, Amethyst::EventManager* ev
     inputManager->AddButtonDownHandler("use_map", toggleMapVisibility);*/
 
     // Add a listener to a built-in amethyst event
-    eventManager->onRequestLeaveGame.AddListener(&onRequestLeaveGame);
     eventManager->onRenderUI.AddListener(&onRenderUi);
+    eventManager->onStartJoinGame.AddListener(&onStartJoinGame);
+    eventManager->onRequestLeaveGame.AddListener(&onRequestLeaveGame);
+}
+
+void onStartJoinGame(ClientInstance* client) {
+    minimap.OnJoinGame();
 }
 
 void onRequestLeaveGame()
@@ -25,8 +30,6 @@ void onRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContex
     if (screenView->visualTree->mRootControlName->layerName == "hud_screen" && map_open) {
         minimap.Render(screenView, uiRenderContext);
     }
-
-    minimap.Update(uiRenderContext->mClient);
 }
 
 void toggleMapVisibility(FocusImpact focus, IClientInstance clientInstance)

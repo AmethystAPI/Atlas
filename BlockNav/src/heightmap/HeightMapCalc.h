@@ -6,9 +6,10 @@
 #include <amethyst/HookManager.h>
 #include <amethyst/InputManager.h>
 #include <amethyst/events/EventManager.h>
+#include <optional>
 
 class HeightMapCalc {
 public:
-    static int getHeightMap(int x, int z, BlockSource* region);
+    static std::optional<int> getHeightMap(int x, int z, BlockSource* region);
 };
 
