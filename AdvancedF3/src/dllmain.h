@@ -14,9 +14,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
     return TRUE;
 }
 
-void OnStartJoinGame(ClientInstance* client);
-void onRequestLeaveGame();
-
 void onRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContext);
 
 void onUseF3(FocusImpact focus, IClientInstance clientInstance);
