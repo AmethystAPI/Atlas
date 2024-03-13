@@ -1,38 +1,27 @@
 ﻿#include "dllmain.h"
-#include "minimap/minimapRenderer.h"
+#include "minimap/Minimap.h"
 
-Minimap minimap;
-bool map_open = true;
+Minimap* minimap;
 
-// Ran when the mod is loaded into the game by AmethystRuntime
-ModFunction void Initialize(AmethystContext* ctx)
+void OnRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContext)
 {
-    /*inputManager->RegisterInput("use_map", 0x4D);
-    inputManager->AddButtonDownHandler("use_map", toggleMapVisibility);*/
+    ClientInstance* client = uiRenderContext->mClient;
+    Tessellator* tes = &uiRenderContext->mScreenContext->tessellator;
+    if (uiRenderContext->mClient == nullptr) return;
 
-    // Add a listener to a built-in amethyst event
-    ctx->mEventManager.onRenderUI.AddListener(&onRenderUi);
-    ctx->mEventManager.onStartJoinGame.AddListener(&onStartJoinGame);
-    ctx->mEventManager.onRequestLeaveGame.AddListener(&onRequestLeaveGame);
-}
+    // Ensure we have a minimap
+    if (!minimap) {
+        minimap = new Minimap(client, tes);
+        minimap->UpdateChunk(ChunkPos(0, 0));
+    }
 
-void onStartJoinGame(ClientInstance* client) {
-    minimap.OnJoinGame();
-}
-
-void onRequestLeaveGame()
-{
-    minimap.OnLeaveGame();
-}
-
-void onRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContext)
-{
-    if (screenView->visualTree->mRootControlName->layerName == "hud_screen" && map_open) {
-        minimap.Render(screenView, uiRenderContext);
+    if (screenView->visualTree->mRootControlName->layerName == "hud_screen") 
+    {
+        minimap->Render(uiRenderContext);
     }
 }
 
-void toggleMapVisibility(FocusImpact focus, IClientInstance clientInstance)
+ModFunction void Initialize(AmethystContext* ctx)
 {
-    map_open = !map_open;
+    ctx->mEventManager.onRenderUI.AddListener(&OnRenderUi);
 }
