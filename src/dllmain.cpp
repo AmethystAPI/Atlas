@@ -5,15 +5,15 @@ Minimap minimap;
 bool map_open = true;
 
 // Ran when the mod is loaded into the game by AmethystRuntime
-ModFunction void Initialize(HookManager* hookManager, Amethyst::EventManager* eventManager, InputManager* inputManager)
+ModFunction void Initialize(AmethystContext* ctx)
 {
     /*inputManager->RegisterInput("use_map", 0x4D);
     inputManager->AddButtonDownHandler("use_map", toggleMapVisibility);*/
 
     // Add a listener to a built-in amethyst event
-    eventManager->onRenderUI.AddListener(&onRenderUi);
-    eventManager->onStartJoinGame.AddListener(&onStartJoinGame);
-    eventManager->onRequestLeaveGame.AddListener(&onRequestLeaveGame);
+    ctx->mEventManager.onRenderUI.AddListener(&onRenderUi);
+    ctx->mEventManager.onStartJoinGame.AddListener(&onStartJoinGame);
+    ctx->mEventManager.onRequestLeaveGame.AddListener(&onRequestLeaveGame);
 }
 
 void onStartJoinGame(ClientInstance* client) {

@@ -3,13 +3,8 @@
 //
 #pragma once
 #include <Windows.h>
-#include <amethyst/HookManager.h>
-#include <amethyst/InputManager.h>
-#include <amethyst/events/EventManager.h>
+#include <amethyst/runtime/AmethystContext.h>
 #include <minecraft/src/common/world/level/ChunkPos.h>
-#include <amethyst/events/EventManager.h>
-#include <amethyst/HookManager.h>
-#include <amethyst/InputManager.h>
 #include <minecraft/src/common/world/level/BlockSourceListener.h>
 #include <minecraft/src/common/world/level/BlockPos.h>
 #include <minecraft/src-client/common/client/gui/ScreenView.h>

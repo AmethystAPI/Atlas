@@ -1,8 +1,6 @@
 #pragma once
 #include <Windows.h>
-#include <amethyst/HookManager.h>
-#include <amethyst/InputManager.h>
-#include <amethyst/events/EventManager.h>
+#include <amethyst/runtime/AmethystContext.h>
 
 #define ModFunction extern "C" __declspec(dllexport)
 
