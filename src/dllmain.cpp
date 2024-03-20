@@ -7,7 +7,7 @@ void OnRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContex
 {
     ClientInstance* client = uiRenderContext->mClient;
     Tessellator* tes = &uiRenderContext->mScreenContext->tessellator;
-    if (uiRenderContext->mClient == nullptr) return;
+    if (uiRenderContext->mClient == nullptr || client->getRegion() == nullptr) return;
 
     // Ensure we have a minimap
     if (!minimap) {

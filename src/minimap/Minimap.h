@@ -4,6 +4,7 @@
 #include <minecraft/src-deps/minecraftrenderer/renderer/Mesh.h>
 #include <minecraft/src-client/common/client/renderer/screen/MinecraftUIRenderContext.h>
 #include <minecraft/src-client/common/client/renderer/helpers/MeshHelpers.h>
+#include <glm/glm.hpp>
 
 class Minimap {
 private:
@@ -19,6 +20,7 @@ public:
 
 public:
     Minimap(ClientInstance* client, Tessellator* tes);
+    mce::Mesh CreateChunkMesh(ChunkPos chunkPos);
     void UpdateChunk(ChunkPos chunkPos);
     void Render(MinecraftUIRenderContext* uiCtx);
 };
