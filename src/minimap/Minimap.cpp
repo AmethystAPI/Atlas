@@ -55,6 +55,11 @@ void Minimap::UpdateChunk(ChunkPos chunkPos)
 void Minimap::Render(MinecraftUIRenderContext* uiCtx)
 {
     Matrix& matrix = uiCtx->mScreenContext->camera->worldMatrixStack.stack.top();
+    RectangleArea rect{ 10.0f, 100.0f, 0.0f, 230.0f };
+
+    // Save the games clipping rectangles before we add ours.
+    uiCtx->saveCurrentClippingRectangle();
+    uiCtx->setClippingRectangle(rect);
 
     for (int x = 0; x < mRenderDistance; x++) {
         for (int z = 0; z < mRenderDistance; z++) {
@@ -65,4 +70,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
             matrix.translate(-x * 16 * mUnitsPerBlock, -z * 16 * mUnitsPerBlock, 0.0f);
         }
     }
+
+    // Remove our clipping rectangle for the minimap renderer
+    uiCtx->restoreSavedClippingRectangle();
 }
