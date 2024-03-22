@@ -14,7 +14,7 @@ private:
     mce::MaterialPtr* mMinimapMaterial;
 
 public:
-    int mRenderDistance = 12;
+    int mRenderDistance = 2;
     float mMinimapSize;
     float mUnitsPerBlock;
 

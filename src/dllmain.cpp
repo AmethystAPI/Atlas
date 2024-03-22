@@ -12,7 +12,12 @@ void OnRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContex
     // Ensure we have a minimap
     if (!minimap) {
         minimap = new Minimap(client, tes);
-        minimap->UpdateChunk(ChunkPos(0, 0));
+
+        for (int x = 0; x < minimap->mRenderDistance; x++) {
+            for (int z = 0; z < minimap->mRenderDistance; z++) {
+                minimap->UpdateChunk(ChunkPos(x, z));
+            }
+        }
     }
 
     if (screenView->visualTree->mRootControlName->layerName == "hud_screen") 
