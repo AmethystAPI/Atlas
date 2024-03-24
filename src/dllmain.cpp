@@ -2,6 +2,8 @@
 #include "minimap/Minimap.h"
 
 Minimap* minimap;
+bool hasBeenOpenedSinceClear = false;
+int frameCount = 0;
 
 void OnRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContext)
 {
@@ -9,19 +11,17 @@ void OnRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContex
     Tessellator* tes = &uiRenderContext->mScreenContext->tessellator;
     if (uiRenderContext->mClient == nullptr || client->getRegion() == nullptr) return;
 
+    frameCount++;
+
     // Ensure we have a minimap
     if (!minimap) {
         minimap = new Minimap(client, tes);
-
-        for (int x = 0; x < minimap->mRenderDistance; x++) {
-            for (int z = 0; z < minimap->mRenderDistance; z++) {
-                minimap->UpdateChunk(ChunkPos(x, z));
-            }
-        }
+        client->getRegion()->addListener(*minimap);
     }
 
     if (screenView->visualTree->mRootControlName->layerName == "hud_screen") 
     {
+        hasBeenOpenedSinceClear = true;
         minimap->Render(uiRenderContext);
     }
 }
