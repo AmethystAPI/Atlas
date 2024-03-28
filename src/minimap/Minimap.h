@@ -14,7 +14,6 @@
 class Minimap : public BlockSourceListener {
 private:
     std::unordered_map<uint64_t, mce::Mesh> mChunkPosToMesh;
-    ClientInstance* mClient;
     Tessellator* mTes;
     mce::MaterialPtr* mMinimapMaterial;
     bool mHasLoadedTextures = false;
@@ -23,6 +22,7 @@ private:
     Amethyst::NinesliceHelper mOutlineNineslice;
 
 public:
+    ClientInstance* mClient;
     int mRenderDistance = 8;
     int mMaxChunksToGeneratePerFrame = 16;
     float mMinimapSize;

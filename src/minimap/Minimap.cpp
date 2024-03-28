@@ -33,9 +33,8 @@ std::optional<mce::Color> Minimap::GetColor(int xPos, int zPos) const
 
         if (block->mLegacyBlock->mID != 0) {
             mce::Color color = block->mLegacyBlock->getMapColor(*region, BlockPos(xPos, y, zPos), *block);
-            color.a = 1.0f;
-
             if (color.r == 0.0f && color.g == 0.0f && color.b == 0.0f && color.a == 0.0f) continue;
+            color.a = 1.0f;
             return color;
         }
     }
