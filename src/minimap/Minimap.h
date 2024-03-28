@@ -6,7 +6,10 @@
 #include <minecraft/src-client/common/client/renderer/helpers/MeshHelpers.h>
 #include <minecraft/src/common/world/level/block/Block.h>
 #include <minecraft/src/common/world/level/BlockSourceListener.h>
+#include <minecraft/src-deps/core/resource/ResourceHelper.h>
+#include <minecraft/src-client/common/client/renderer/TexturePtr.h>
 #include <glm/glm.hpp>
+#include <amethyst/ui/NinesliceHelper.h>
 
 class Minimap : public BlockSourceListener {
 private:
@@ -14,6 +17,10 @@ private:
     ClientInstance* mClient;
     Tessellator* mTes;
     mce::MaterialPtr* mMinimapMaterial;
+    bool mHasLoadedTextures = false;
+
+    mce::TexturePtr mMinimapOutline;
+    Amethyst::NinesliceHelper mOutlineNineslice;
 
 public:
     int mRenderDistance = 8;

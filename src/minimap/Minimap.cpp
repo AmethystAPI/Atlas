@@ -1,6 +1,8 @@
 #include "Minimap.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <set>
+#include <amethyst/ui/NinesliceHelper.h>
 
 Vec3 vertexes[6] = {
     Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f),
@@ -8,6 +10,7 @@ Vec3 vertexes[6] = {
 };
 
 Minimap::Minimap(ClientInstance* client, Tessellator* tes)
+    : mOutlineNineslice(30, 30, 10, 10)
 {
     mClient = client;
     mTes = tes;
@@ -29,7 +32,9 @@ std::optional<mce::Color> Minimap::GetColor(int xPos, int zPos) const
         const Block* block = &region->getBlock(xPos, y, zPos);
 
         if (block->mLegacyBlock->mID != 0) {
-            mce::Color color = block->mLegacyBlock->mMapColor;
+            mce::Color color = block->mLegacyBlock->getMapColor(*region, BlockPos(xPos, y, zPos), *block);
+            color.a = 1.0f;
+
             if (color.r == 0.0f && color.g == 0.0f && color.b == 0.0f && color.a == 0.0f) continue;
             return color;
         }
@@ -75,6 +80,12 @@ void Minimap::UpdateChunk(ChunkPos chunkPos)
 
 void Minimap::Render(MinecraftUIRenderContext* uiCtx)
 {
+    if (!mHasLoadedTextures) {
+        ResourceLocation resource("textures/ui/minimap_border");
+        mMinimapOutline = uiCtx->getTexture(&resource, true);
+        mHasLoadedTextures = true;
+    }
+
     // Save the games clipping rectangles before we add ours.
     uiCtx->saveCurrentClippingRectangle();
 
@@ -141,6 +152,12 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
 
     // Remove our clipping rectangle for the minimap renderer
     uiCtx->restoreSavedClippingRectangle();
+
+    rect._x0 -= 1;
+    rect._y0 -= 1;
+    mOutlineNineslice.Draw(rect, &mMinimapOutline, uiCtx);
+    HashedString flushString(0xA99285D21E94FC80, "ui_flush");
+    uiCtx->flushImages(mce::Color::WHITE, 1.0f, flushString);
 }
 
 void Minimap::ClearCache()

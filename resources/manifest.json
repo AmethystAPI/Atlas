@@ -1,0 +1,28 @@
+{
+    "format_version": 2,
+    "header": {
+      "name": "minimap",
+      "uuid": "6f01ac0c-8774-49c1-33c4-678c962b85ac",
+      "version": [
+        1,
+        0,
+        0
+      ],
+      "min_engine_version": [
+        1,
+        17,
+        0
+      ]
+    },
+    "modules": [
+      {
+        "type": "resources",
+        "uuid": "64b8e1c7-f3c2-98fd-9efe-87a4537edc42",
+        "version": [
+          1,
+          0,
+          0
+        ]
+      }
+    ]
+  }
