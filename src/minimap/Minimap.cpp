@@ -16,7 +16,7 @@ Minimap::Minimap(ClientInstance* client, Tessellator* tes)
     mTes = tes;
     mMinimapMaterial = reinterpret_cast<mce::MaterialPtr*>(SlideAddress(0x5853DB0));
 
-    mMinimapEdgeBorder = 10.0f;
+    mMinimapEdgeBorder = 3.0f;
     mMinimapSize = 128.0f;
     mUnitsPerBlock = mMinimapSize / (mRenderDistance * 16 * 2);
 }
@@ -91,6 +91,9 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
 
     // Stencil out any chunk meshes that overlap the edges of the minimap.
     Vec2 screenSize = mClient->guiData->clientUIScreenSize;
+
+    mMinimapSize = screenSize.x * 0.25f;
+
     RectangleArea rect{ screenSize.x - (mMinimapSize + mMinimapEdgeBorder), screenSize.x - mMinimapEdgeBorder, mMinimapEdgeBorder, mMinimapEdgeBorder + mMinimapSize };
     uiCtx->setClippingRectangle(rect);
 
@@ -153,6 +156,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     // Remove our clipping rectangle for the minimap renderer
     uiCtx->restoreSavedClippingRectangle();
 
+    // The stenciling in MinecraftUIRenderContext has an off by 1 error
     rect._x0 -= 1;
     rect._y0 -= 1;
     mOutlineNineslice.Draw(rect, &mMinimapOutline, uiCtx);
