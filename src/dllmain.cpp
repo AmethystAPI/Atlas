@@ -12,12 +12,12 @@ void OnRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContex
     if (uiRenderContext->mClient == nullptr || client->getRegion() == nullptr) return;
 
     // Ensure we have a minimap
-    if (!minimap) 
+    if (!minimap)
     {
         minimap = new Minimap(client, tes);
     }
 
-    if (screenView->visualTree->mRootControlName->layerName == "hud_screen") 
+    if (screenView->visualTree->mRootControlName->layerName == "hud_screen")
     {
         if (!hasAddedRegionListener) {
             client->getRegion()->addListener(*minimap);
@@ -51,5 +51,4 @@ ModFunction void Initialize(AmethystContext* ctx)
     ctx->mEventManager.onRenderUI.AddListener(&OnRenderUi);
     ctx->mEventManager.beforeModShutdown.AddListener(&BeforeModShutdown);
     ctx->mEventManager.onRequestLeaveGame.AddListener(&OnRequestLeaveGame);
-    ctx->mEventManager.onStartJoinGame.AddListener(&OnStartJoinGame);
 }
