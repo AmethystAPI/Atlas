@@ -1,6 +1,7 @@
 ﻿#include "dllmain.h"
 #include "minimap/Minimap.h"
 
+AmethystContext* amethyst;
 Minimap* minimap;
 bool hasAddedRegionListener = false;
 
@@ -46,7 +47,9 @@ void OnRequestLeaveGame() {
 
 ModFunction void Initialize(AmethystContext* ctx)
 {
+    amethyst = ctx;
     ctx->mEventManager.onRenderUI.AddListener(&OnRenderUi);
     ctx->mEventManager.beforeModShutdown.AddListener(&BeforeModShutdown);
     ctx->mEventManager.onRequestLeaveGame.AddListener(&OnRequestLeaveGame);
+    ctx->mEventManager.onStartJoinGame.AddListener(&OnStartJoinGame);
 }

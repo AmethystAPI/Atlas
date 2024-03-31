@@ -97,6 +97,8 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     uiCtx->setClippingRectangle(rect);
 
     Matrix& matrix = uiCtx->mScreenContext->camera->worldMatrixStack.stack.top();
+    Matrix originalMatrix = matrix;
+
     Vec3* playerPos = uiCtx->mClient->getLocalPlayer()->getPosition();
     ChunkPos playerChunkPos = ChunkPos((int)playerPos->x / 16, (int)playerPos->z / 16);
     int chunksGeneratedThisFrame = 0;
@@ -139,17 +141,21 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
             continue;
         }
 
-        float xChunkTranslation = ((chunkPos.x * 16) - playerPos->x + mRenderDistance * 16) * mUnitsPerBlock;
-        float zChunkTranslation = ((chunkPos.z * 16) - playerPos->z + mRenderDistance * 16) * mUnitsPerBlock;
+        float xChunkTranslation = (((chunkPos.x * 16) - playerPos->x + mRenderDistance * 16)) * mUnitsPerBlock;
+        float zChunkTranslation = (((chunkPos.z * 16) - playerPos->z + mRenderDistance * 16)) * mUnitsPerBlock;
 
         xChunkTranslation += screenSize.x - (mMinimapSize + mMinimapEdgeBorder);
         zChunkTranslation += mMinimapEdgeBorder;
 
+        // WE NEED TO SCALE THE CHUNKS TO THE SIZE OF mUnitsPerBlock * 16
+        float chunkScale = (16.0f * mUnitsPerBlock) / 16.0f;
+
         // Chunks are drawn from the top left corner of the screen, so translate them to their intended position on screen
         // Then undo that translation as not to screw up minecrafts rendering, or rendering of other minimap chunks
         matrix.translate(xChunkTranslation, zChunkTranslation, 0.0f);
+        matrix.scale(chunkScale, chunkScale, 1.0f);
         mesh->second.renderMesh(uiCtx->mScreenContext, mMinimapMaterial);
-        matrix.translate(-xChunkTranslation, -zChunkTranslation, 0.0f);
+        matrix = originalMatrix;
     }
 
     // Remove our clipping rectangle for the minimap renderer
@@ -161,6 +167,12 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     mOutlineNineslice.Draw(rect, &mMinimapOutline, uiCtx);
     HashedString flushString(0xA99285D21E94FC80, "ui_flush");
     uiCtx->flushImages(mce::Color::WHITE, 1.0f, flushString);
+
+
+    float midX = (rect._x0 + 1 + rect._x1) / 2.0f;
+    float midY = (rect._y0 + 1 + rect._y1) / 2.0f;
+    RectangleArea midRect{midX - 1.0f, midX + 1.0f, midY - 1.0f, midY + 1.0f};
+    uiCtx->drawRectangle(&midRect, &mce::Color::WHITE, 1.0f, 1);
 }
 
 void Minimap::ClearCache()
