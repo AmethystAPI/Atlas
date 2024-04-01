@@ -49,6 +49,8 @@ void Minimap::UpdateChunk(ChunkPos chunkPos)
     int worldX = chunkPos.x * 16;
     int worldZ = chunkPos.z * 16;
 
+    float pixelUnitSize = mClient->guiData->clientUIScreenSize.x / mClient->guiData->clientScreenSize.x;
+
     for (int chunkX = 0; chunkX < 16; chunkX++) {
         for (int chunkZ = 0; chunkZ < 16; chunkZ++) {
             // Sample the colour of the current block
@@ -66,6 +68,10 @@ void Minimap::UpdateChunk(ChunkPos chunkPos)
             // To do: Look into drawing with quads to reduce size in memory.
             for (auto& vert : vertexes) {
                 Vec3 scaledVert = vert * Vec3(mUnitsPerBlock, mUnitsPerBlock, 1.0f);
+
+                if (chunkX == 15 && vert.x == 1.0f) scaledVert = scaledVert + Vec3(0.1f, 0.0f, 0.0f);
+                if (chunkZ == 15 && vert.y == 1.0f) scaledVert = scaledVert + Vec3(0.0f, 0.1f, 0.0f);
+
                 Vec3 transformedPos = Vec3(chunkX * mUnitsPerBlock, chunkZ * mUnitsPerBlock, 0.0f) + scaledVert;
                 mTes->vertex(transformedPos);
             }
