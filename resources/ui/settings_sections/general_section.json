@@ -1,0 +1,66 @@
+/********************************************************
++*   (c) Mojang. All rights reserved                       *
++*   (c) Microsoft. All rights reserved.                   *
++*********************************************************/
+{
+    "namespace": "general_section",
+    "atlas_button@settings_common.section_toggle_base": {
+      "$toggle_view_binding_name": "atlas_button_toggle",
+      "$glyph_texture": "textures/ui/world_glyph",
+      "$glyph_color_texture": "textures/ui/world_glyph_color",
+      "$glyph_size": [
+        11,
+        12
+      ],
+      "$button_text": "AdvancedF3",
+      "$toggle_property_bag": {
+        "#panel_title": "AdvancedF3"
+      }
+    },
+    "atlas_section": {
+      "type": "stack_panel",
+      "size": [
+        "100%",
+        "100%c"
+      ],
+      "anchor_from": "top_left",
+      "anchor_to": "top_left",
+      "$spatialPatternsPadding": [
+        "100%",
+        8
+      ],
+      "$paddingLineDivider": [
+        "100%",
+        16
+      ],
+      "bindings": [
+        {
+          "binding_type": "view",
+          "source_control_name": "atlas_button_toggle",
+          "source_property_name": "#toggle_state",
+          "target_property_name": "#visible"
+        }
+      ],
+      "controls": [
+        {
+          "type": "label",
+          "text": "AMETHYST!"
+        },
+        {
+          "atlas_test_toggle@settings_common.option_toggle": {
+            "$option_label": "Label",
+            "$option_binding_name": "#atlas_test_toggle",
+            "$option_enabled_binding_name": "#atlas_test_toggle_enabled",
+            "$toggle_name": "atlas_test_toggle"
+          }
+        },
+        {
+          "atlas_slider@settings_common.option_slider": {
+            "$option_label": "Slider Label",
+            "$slider_value_binding_name": "#atlas_slider",
+            "$slider_name": "atlas_slider"
+          }
+        }
+      ]
+    }
+  }
