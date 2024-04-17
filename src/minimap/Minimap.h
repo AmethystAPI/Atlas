@@ -23,7 +23,7 @@ private:
 
 public:
     ClientInstance* mClient;
-    int mRenderDistance = 3;
+    int mRenderDistance = 6;
     int mMaxChunksToGeneratePerFrame = 16;
     float mMinimapSize;
     float mMinimapEdgeBorder;
