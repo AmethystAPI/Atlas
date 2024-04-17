@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <set>
-#include <amethyst/ui/NinesliceHelper.h>
+#include <amethyst/ui/NinesliceHelper.hpp>
 
 Vec3 vertexes[6] = {
     Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f),
@@ -147,13 +147,9 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
         xChunkTranslation += screenSize.x - (mMinimapSize + mMinimapEdgeBorder);
         zChunkTranslation += mMinimapEdgeBorder;
 
-        // WE NEED TO SCALE THE CHUNKS TO THE SIZE OF mUnitsPerBlock * 16
-        float chunkScale = (16.0f * mUnitsPerBlock) / 16.0f;
-
         // Chunks are drawn from the top left corner of the screen, so translate them to their intended position on screen
         // Then undo that translation as not to screw up minecrafts rendering, or rendering of other minimap chunks
         matrix.translate(xChunkTranslation, zChunkTranslation, 0.0f);
-        matrix.scale(chunkScale, chunkScale, 1.0f);
         mesh->second.renderMesh(uiCtx->mScreenContext, mMinimapMaterial);
         matrix = originalMatrix;
     }

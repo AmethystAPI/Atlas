@@ -1,6 +1,6 @@
 #pragma once
 #include <Windows.h>
-#include <amethyst/runtime/AmethystContext.h>
+#include <amethyst/runtime/AmethystContext.hpp>
 
 #define ModFunction extern "C" __declspec(dllexport)
 
