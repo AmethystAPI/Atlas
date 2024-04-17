@@ -91,8 +91,6 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     // Stencil out any chunk meshes that overlap the edges of the minimap.
     Vec2 screenSize = mClient->guiData->clientUIScreenSize;
 
-    mMinimapSize = screenSize.x * 0.25f;
-
     RectangleArea rect{ screenSize.x - (mMinimapSize + mMinimapEdgeBorder), screenSize.x - mMinimapEdgeBorder, mMinimapEdgeBorder, mMinimapEdgeBorder + mMinimapSize };
     uiCtx->setClippingRectangle(rect);
 
@@ -147,8 +145,6 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
         xChunkTranslation += screenSize.x - (mMinimapSize + mMinimapEdgeBorder);
         zChunkTranslation += mMinimapEdgeBorder;
 
-        // Chunks are drawn from the top left corner of the screen, so translate them to their intended position on screen
-        // Then undo that translation as not to screw up minecrafts rendering, or rendering of other minimap chunks
         matrix.translate(xChunkTranslation, zChunkTranslation, 0.0f);
         mesh->second.renderMesh(uiCtx->mScreenContext, mMinimapMaterial);
         matrix = originalMatrix;
@@ -158,11 +154,11 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     uiCtx->restoreSavedClippingRectangle();
 
     // The stenciling in MinecraftUIRenderContext has an off by 1 error
-    rect._x0 -= 1;
+    /*rect._x0 -= 1;
     rect._y0 -= 1;
     mOutlineNineslice.Draw(rect, &mMinimapOutline, uiCtx);
     HashedString flushString(0xA99285D21E94FC80, "ui_flush");
-    uiCtx->flushImages(mce::Color::WHITE, 1.0f, flushString);
+    uiCtx->flushImages(mce::Color::WHITE, 1.0f, flushString);*/
 
 
     float midX = (rect._x0 + 1 + rect._x1) / 2.0f;
