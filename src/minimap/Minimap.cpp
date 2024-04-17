@@ -65,8 +65,7 @@ void Minimap::UpdateChunk(ChunkPos chunkPos)
             // Draw each block with 2 triangles
             // To do: Look into drawing with quads to reduce size in memory.
             for (auto& vert : vertexes) {
-                Vec3 scaledVert = vert * Vec3(mUnitsPerBlock, mUnitsPerBlock, 1.0f);
-                Vec3 transformedPos = Vec3(chunkX * mUnitsPerBlock, chunkZ * mUnitsPerBlock, 0.0f) + scaledVert;
+                Vec3 transformedPos = Vec3((float)chunkX, (float)chunkZ, 0.0f) + vert;
                 mTes->vertex(transformedPos);
             }
         }
@@ -146,6 +145,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
         zChunkTranslation += mMinimapEdgeBorder;
 
         matrix.translate(xChunkTranslation, zChunkTranslation, 0.0f);
+        matrix.scale(mUnitsPerBlock / 1, mUnitsPerBlock / 1, 1);
         mesh->second.renderMesh(uiCtx->mScreenContext, mMinimapMaterial);
         matrix = originalMatrix;
     }
