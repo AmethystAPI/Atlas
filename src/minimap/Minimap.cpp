@@ -67,10 +67,6 @@ std::optional<mce::Color> Minimap::GetColor(int xPos, int zPos) const
             color.g *= darkening;
             color.b *= darkening;
 
-            if (color.r > 1.0f) color.r = 1.0f;
-            if (color.g > 1.0f) color.g = 1.0f;
-            if (color.b > 1.0f) color.b = 1.0f;
-
             return color;
         }
     }
