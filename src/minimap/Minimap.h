@@ -1,15 +1,15 @@
 #pragma once
 #include <unordered_map>
-#include <minecraft/src/common/world/level/ChunkPos.h>
-#include <minecraft/src-deps/minecraftrenderer/renderer/Mesh.h>
-#include <minecraft/src-client/common/client/renderer/screen/MinecraftUIRenderContext.h>
-#include <minecraft/src-client/common/client/renderer/helpers/MeshHelpers.h>
-#include <minecraft/src/common/world/level/block/Block.h>
-#include <minecraft/src/common/world/level/BlockSourceListener.h>
-#include <minecraft/src-deps/core/resource/ResourceHelper.h>
-#include <minecraft/src-client/common/client/renderer/TexturePtr.h>
+#include <minecraft/src/common/world/level/ChunkPos.hpp>
+#include <minecraft/src-deps/minecraftrenderer/renderer/Mesh.hpp>
+#include <minecraft/src-client/common/client/renderer/screen/MinecraftUIRenderContext.hpp>
+#include <minecraft/src-client/common/client/renderer/helpers/MeshHelpers.hpp>
+#include <minecraft/src/common/world/level/block/Block.hpp>
+#include <minecraft/src/common/world/level/BlockSourceListener.hpp>
+#include <minecraft/src-deps/core/resource/ResourceHelper.hpp>
+#include <minecraft/src-client/common/client/renderer/TexturePtr.hpp>
 #include <glm/glm.hpp>
-#include <amethyst/ui/NinesliceHelper.h>
+#include <amethyst/ui/NinesliceHelper.hpp>
 
 class Minimap : public BlockSourceListener {
 private:
@@ -23,7 +23,7 @@ private:
 
 public:
     ClientInstance* mClient;
-    int mRenderDistance = 3;
+    int mRenderDistance = 6;
     int mMaxChunksToGeneratePerFrame = 16;
     float mMinimapSize;
     float mMinimapEdgeBorder;

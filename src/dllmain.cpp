@@ -17,7 +17,7 @@ void OnRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContex
         minimap = new Minimap(client, tes);
     }
 
-    if (screenView->visualTree->mRootControlName->layerName == "hud_screen")
+    if (screenView->visualTree->mRootControlName->mName == "hud_screen") 
     {
         if (!hasAddedRegionListener) {
             client->getRegion()->addListener(*minimap);
@@ -48,7 +48,7 @@ void OnRequestLeaveGame() {
 ModFunction void Initialize(AmethystContext* ctx)
 {
     amethyst = ctx;
-    ctx->mEventManager.onRenderUI.AddListener(&OnRenderUi);
+    ctx->mEventManager.afterRenderUI.AddListener(&OnRenderUi);
     ctx->mEventManager.beforeModShutdown.AddListener(&BeforeModShutdown);
     ctx->mEventManager.onRequestLeaveGame.AddListener(&OnRequestLeaveGame);
 }

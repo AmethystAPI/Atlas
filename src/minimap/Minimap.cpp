@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <set>
-#include <amethyst/ui/NinesliceHelper.h>
+#include <amethyst/ui/NinesliceHelper.hpp>
 
 Vec3 vertexes[6] = {
     Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f),
@@ -21,6 +21,25 @@ Minimap::Minimap(ClientInstance* client, Tessellator* tes)
     mUnitsPerBlock = mMinimapSize / (mRenderDistance * 16 * 2);
 }
 
+int countBlockNeighbors(const BlockSource* region, int xPos, int yPos, int zPos)
+{
+    int count = 0;
+
+    const Block* block = &region->getBlock(xPos - 1, yPos, zPos);
+    if (block->mLegacyBlock->mID != 0) count += 1;
+
+    block = &region->getBlock(xPos, yPos, zPos - 1);
+    if (block->mLegacyBlock->mID != 0) count += 1;
+
+    block = &region->getBlock(xPos + 1, yPos, zPos);
+    if (block->mLegacyBlock->mID != 0) count += 1;
+
+    block = &region->getBlock(xPos, yPos, zPos + 1);
+    if (block->mLegacyBlock->mID != 0) count += 1;
+
+    return count;
+}
+
 std::optional<mce::Color> Minimap::GetColor(int xPos, int zPos) const
 {
     BlockSource* region = mClient->getRegion();
@@ -35,6 +54,19 @@ std::optional<mce::Color> Minimap::GetColor(int xPos, int zPos) const
             mce::Color color = block->mLegacyBlock->getMapColor(*region, BlockPos(xPos, y, zPos), *block);
             if (color.r == 0.0f && color.g == 0.0f && color.b == 0.0f && color.a == 0.0f) continue;
             color.a = 1.0f;
+
+            // If the block has little neighbors, its higher than surrounding blocks, shade bright
+            // if has many neighbors shade normally.
+            float blocksAbove = (float)countBlockNeighbors(region, xPos, y + 1, zPos) / 4;
+
+            float start = 0.9f;
+            float end = 0.7f;
+            float darkening = start + blocksAbove * (end - start);
+
+            color.r *= darkening;
+            color.g *= darkening;
+            color.b *= darkening;
+
             return color;
         }
     }
@@ -73,6 +105,7 @@ void Minimap::UpdateChunk(ChunkPos chunkPos)
                 if (chunkZ == 15 && vert.y == 1.0f) scaledVert = scaledVert + Vec3(0.0f, 0.1f, 0.0f);
 
                 Vec3 transformedPos = Vec3(chunkX * mUnitsPerBlock, chunkZ * mUnitsPerBlock, 0.0f) + scaledVert;
+
                 mTes->vertex(transformedPos);
             }
         }
@@ -162,11 +195,11 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     uiCtx->restoreSavedClippingRectangle();
 
     // The stenciling in MinecraftUIRenderContext has an off by 1 error
-    rect._x0 -= 1;
+    /*rect._x0 -= 1;
     rect._y0 -= 1;
     mOutlineNineslice.Draw(rect, &mMinimapOutline, uiCtx);
     HashedString flushString(0xA99285D21E94FC80, "ui_flush");
-    uiCtx->flushImages(mce::Color::WHITE, 1.0f, flushString);
+    uiCtx->flushImages(mce::Color::WHITE, 1.0f, flushString);*/
 
 
     float midX = (rect._x0 + 1 + rect._x1) / 2.0f;
