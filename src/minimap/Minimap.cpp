@@ -188,6 +188,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     // Remove our clipping rectangle for the minimap renderer
     uiCtx->restoreSavedClippingRectangle();
 
+    // Draw mainimap border
     // TODO: The stenciling in MinecraftUIRenderContext has an off by 1 error
     // Also crashes on world leave
 //    rect._x0 -= 1;
