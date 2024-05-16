@@ -12,7 +12,7 @@ void OnRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContex
     if (uiRenderContext->mClient == nullptr || client->getRegion() == nullptr) return;
 
     // Ensure we have a minimap
-    if (!minimap) 
+    if (!minimap)
     {
         minimap = new Minimap(client, tes);
     }

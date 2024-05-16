@@ -45,7 +45,7 @@ int countBlockNeighbors(const BlockSource* region, int xPos, int yPos, int zPos)
 std::optional<mce::Color> Minimap::GetColor(int xPos, int zPos) const
 {
     BlockSource* region = mClient->getRegion();
-    
+
     short maxY = region->getMaxHeight();
     short minY = region->getMinHeight();
 
@@ -84,6 +84,8 @@ void Minimap::UpdateChunk(ChunkPos chunkPos)
     int worldX = chunkPos.x * 16;
     int worldZ = chunkPos.z * 16;
 
+    float pixelUnitSize = mClient->guiData->clientUIScreenSize.x / mClient->guiData->clientScreenSize.x;
+
     for (int chunkX = 0; chunkX < 16; chunkX++) {
         for (int chunkZ = 0; chunkZ < 16; chunkZ++) {
             // Sample the colour of the current block
@@ -100,7 +102,13 @@ void Minimap::UpdateChunk(ChunkPos chunkPos)
             // Draw each block with 2 triangles
             // To do: Look into drawing with quads to reduce size in memory.
             for (auto& vert : vertexes) {
-                Vec3 transformedPos = Vec3((float)chunkX, (float)chunkZ, 0.0f) + vert;
+                Vec3 scaledVert = vert * Vec3(mUnitsPerBlock, mUnitsPerBlock, 1.0f);
+
+                if (chunkX == 15 && vert.x == 1.0f) scaledVert = scaledVert + Vec3(0.1f, 0.0f, 0.0f);
+                if (chunkZ == 15 && vert.y == 1.0f) scaledVert = scaledVert + Vec3(0.0f, 0.1f, 0.0f);
+
+                Vec3 transformedPos = Vec3(chunkX * mUnitsPerBlock, chunkZ * mUnitsPerBlock, 0.0f) + scaledVert;
+
                 mTes->vertex(transformedPos);
             }
         }
@@ -143,7 +151,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
             ChunkPos chunkPos(x + playerChunkPos.x, z + playerChunkPos.z);
 
             double distance = sqrt(
-                (chunkPos.x - playerChunkPos.x) * (chunkPos.x - playerChunkPos.x) + 
+                (chunkPos.x - playerChunkPos.x) * (chunkPos.x - playerChunkPos.x) +
                 (chunkPos.z - playerChunkPos.z) * (chunkPos.z - playerChunkPos.z)
             );
 
@@ -154,14 +162,14 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     // Sort the chunks in order of distance, so closer chunks are prioritised
     std::sort(mChunksToRender.begin(), mChunksToRender.end(), [](std::pair<ChunkPos, double> a, std::pair<ChunkPos, double> b) {
         return a.second < b.second;
-    });
+        });
 
     // Render each chunk in the players minimap render distance.
-    for (auto& chunk : mChunksToRender) 
+    for (auto& chunk : mChunksToRender)
     {
         ChunkPos chunkPos = chunk.first;
         auto mesh = mChunkPosToMesh.find(chunkPos.packed);
-            
+
         // The chunk has not had a mesh generated yet
         if (mesh == mChunkPosToMesh.end()) {
             // Dont generate too much at once. Minimap doesn't need a high priority
@@ -179,8 +187,9 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
         xChunkTranslation += screenSize.x - (mMinimapSize + mMinimapEdgeBorder);
         zChunkTranslation += mMinimapEdgeBorder;
 
+        // Chunks are drawn from the top left corner of the screen, so translate them to their intended position on screen
+        // Then undo that translation as not to screw up minecrafts rendering, or rendering of other minimap chunks
         matrix.translate(xChunkTranslation, zChunkTranslation, 0.0f);
-        matrix.scale(mUnitsPerBlock / 1, mUnitsPerBlock / 1, 1);
         mesh->second.renderMesh(uiCtx->mScreenContext, mMinimapMaterial);
         matrix = originalMatrix;
     }
@@ -199,7 +208,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
 
     float midX = (rect._x0 + 1 + rect._x1) / 2.0f;
     float midY = (rect._y0 + 1 + rect._y1) / 2.0f;
-    RectangleArea midRect{midX - 1.0f, midX + 1.0f, midY - 1.0f, midY + 1.0f};
+    RectangleArea midRect{ midX - 1.0f, midX + 1.0f, midY - 1.0f, midY + 1.0f };
     uiCtx->drawRectangle(&midRect, &mce::Color::WHITE, 1.0f, 1);
 }
 
