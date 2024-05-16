@@ -12,3 +12,4 @@ Atlas adds a minimap to the Minecraft Bedrock experience.
 
 Have fun!
 And feel free to contribute...
+
