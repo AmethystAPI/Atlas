@@ -53,8 +53,9 @@ std::optional<mce::Color> Minimap::GetColor(int xPos, int zPos) const
         const Block* block = &region->getBlock(xPos, y, zPos);
 
         if (block->mLegacyBlock->mID != 0) {
-            // TODO: use correct color getter with function in friend class block to access protected getMapColor in BlockLegacy
-            mce::Color color = block->mLegacyBlock->mMapColor;
+            // Get the blocks map color
+            mce::Color color = block->getMapColor(*region, BlockPos(xPos, y, zPos));
+
             if (color.r == 0.0f && color.g == 0.0f && color.b == 0.0f && color.a == 0.0f) continue;
             color.a = 1.0f;
 
