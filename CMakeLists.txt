@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 # Mod Options
 project(Atlas)
 set(MOD_VERSION "1.0.0")
-set(MOD_AUTHOR "Adrian8115, FrederoxDev")
+set(MOD_AUTHOR "Adrian8115, FrederoxDev", "OuterCloud")
 
 # Define only RelWithDebInfo as the available build configuration
 set(CMAKE_CONFIGURATION_TYPES "RelWithDebInfo" CACHE STRING "Build configurations" FORCE)
