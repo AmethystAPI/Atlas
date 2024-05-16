@@ -3,6 +3,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <set>
 #include <amethyst/ui/NinesliceHelper.hpp>
+#include <minecraft/src/common/world/level/block/Block.hpp>
+#include <minecraft/src/common/world/level/block/BlockLegacy.hpp>
 
 Vec3 vertexes[6] = {
     Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f),
@@ -51,7 +53,8 @@ std::optional<mce::Color> Minimap::GetColor(int xPos, int zPos) const
         const Block* block = &region->getBlock(xPos, y, zPos);
 
         if (block->mLegacyBlock->mID != 0) {
-            mce::Color color = block->mLegacyBlock->getMapColor(*region, BlockPos(xPos, y, zPos), *block);
+            // TODO: use correct color getter with function in friend class block to access protected getMapColor in BlockLegacy
+            mce::Color color = block->mLegacyBlock->mMapColor;
             if (color.r == 0.0f && color.g == 0.0f && color.b == 0.0f && color.a == 0.0f) continue;
             color.a = 1.0f;
 
@@ -185,13 +188,13 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     // Remove our clipping rectangle for the minimap renderer
     uiCtx->restoreSavedClippingRectangle();
 
-    // The stenciling in MinecraftUIRenderContext has an off by 1 error
-    /*rect._x0 -= 1;
-    rect._y0 -= 1;
-    mOutlineNineslice.Draw(rect, &mMinimapOutline, uiCtx);
-    HashedString flushString(0xA99285D21E94FC80, "ui_flush");
-    uiCtx->flushImages(mce::Color::WHITE, 1.0f, flushString);*/
-
+    // TODO: The stenciling in MinecraftUIRenderContext has an off by 1 error
+    // Also crashes on world leave
+//    rect._x0 -= 1;
+//    rect._y0 -= 1;
+//    mOutlineNineslice.Draw(rect, &mMinimapOutline, uiCtx);
+//    HashedString flushString(0xA99285D21E94FC80, "ui_flush");
+//    uiCtx->flushImages(mce::Color::WHITE, 1.0f, flushString);
 
     float midX = (rect._x0 + 1 + rect._x1) / 2.0f;
     float midY = (rect._y0 + 1 + rect._y1) / 2.0f;
