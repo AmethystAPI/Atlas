@@ -5,13 +5,7 @@ project(Atlas)
 set(MOD_VERSION "1.0.0")
 set(MOD_AUTHOR "Adrian8115, FrederoxDev", "OuterCloud")
 
-# Define only RelWithDebInfo as the available build configuration
-set(CMAKE_CONFIGURATION_TYPES "RelWithDebInfo" CACHE STRING "Build configurations" FORCE)
-set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo" FORCE)
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /await")
-
-# Build into %appdata%/Amethyst
+# Amethyst Minecraft Folder
 set(AmethystFolder "$ENV{localappdata}/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/AC/Amethyst/")
 
 # Configure to build within the Amethyst Folder
