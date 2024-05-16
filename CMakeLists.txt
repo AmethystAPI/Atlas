@@ -1,45 +1,53 @@
 cmake_minimum_required(VERSION 3.12)
+
+# Mod Options
 project(Atlas)
 set(MOD_VERSION "1.0.0")
 set(MOD_AUTHOR "Adrian8115, FrederoxDev")
-set(PROJECT_NAME "Atlas")
 
-# Define only RelWithDebInfo as the available build configuration
-set(CMAKE_CONFIGURATION_TYPES "RelWithDebInfo" CACHE STRING "Build configurations" FORCE)
-set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo" FORCE)
-set(CMAKE_CXX_STANDARD 23)
-
-# Build into %appdata%/Amethyst
+# Amethyst Minecraft Folder
 set(AmethystFolder "$ENV{localappdata}/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/AC/Amethyst/")
+
+# Configure to build within the Amethyst Folder
+configure_file(mod.json.in "${AmethystFolder}/mods/${PROJECT_NAME}@${MOD_VERSION}/mod.json" @ONLY)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${AmethystFolder}/mods/${PROJECT_NAME}@${MOD_VERSION}")
 
-# Include Amethyst 
-find_library(AMETHYST_API AmethystAPI PATHS "${AmethystFolder}/lib")
-include_directories(${AmethystFolder}/include "include/")
+# Define only RelWithDebInfo as the available build configuration
+set(CMAKE_CXX_STANDARD 23)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(CMAKE_CONFIGURATION_TYPES "RelWithDebInfo" CACHE STRING "Build configurations" FORCE)
+set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build, options are: RelWithDebInfo" FORCE)
 
 # Project Files
-file(GLOB_RECURSE CPP_SOURCES "src/*.cpp")
-file(GLOB_RECURSE H_FILES "src/*.h" )
-add_library(${PROJECT_NAME} SHARED ${CPP_SOURCES} ${H_FILES})
+file(GLOB_RECURSE ${PROJECT_NAME}_All
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.asm
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
+)
+
+add_library(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_All})
+
+# Pass mod options to the source code
+target_compile_definitions(${PROJECT_NAME} PRIVATE MOD_VERSION="${MOD_VERSION}")
+target_compile_definitions(${PROJECT_NAME} PRIVATE MOD_AUTHOR="${MOD_AUTHOR}")
+target_compile_definitions(${PROJECT_NAME} PRIVATE MOD_NAME="${PROJECT_NAME}")
+
+# Link libraries
+target_link_libraries(${PROJECT_NAME} PRIVATE
+        AmethystAPI
+        libhat
+        $ENV{amethyst_src}/AmethystAPI/lib/fmt.lib
+)
+
+# Enable multi processor compilation for C++, to make it go brrrrrr
+target_compile_options(${PROJECT_NAME} PRIVATE
+        $<$<COMPILE_LANGUAGE:CXX>:/MP>
+)
 
 # EnTT Config Options
 target_compile_definitions(${PROJECT_NAME} PUBLIC ENTT_PACKED_PAGE=128)
 
-# Organize source files into virtual folders in Visual Studio
-foreach(source IN LISTS CPP_SOURCES H_FILES)
-    get_filename_component(source_path "${source}" DIRECTORY)
-    string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}" "" source_path_relative "${source_path}")
-    string(REPLACE "/" "\\" source_path_relative "${source_path_relative}")
-    source_group("${source_path_relative}" FILES "${source}")
-endforeach()
-
-# Pass MOD_VERSION to the source code
-target_compile_definitions(${PROJECT_NAME} PRIVATE MOD_VERSION="${MOD_VERSION}")
-
-# Link libraries
-target_link_libraries(${PROJECT_NAME} PRIVATE ${AMETHYST_API})
-target_link_libraries(${PROJECT_NAME} PRIVATE "${AmethystFolder}/lib/fmt.lib")
-target_link_libraries(${PROJECT_NAME} PRIVATE "${AmethystFolder}/lib/libhat.lib")
-
-# Write a mod.json file to provide meta data about the mod
-configure_file(mod.json.in "${AmethystFolder}/mods/${PROJECT_NAME}@${MOD_VERSION}/mod.json" @ONLY)
+# Get the AmethystAPI Lib
+add_subdirectory("$ENV{amethyst_src}/AmethystAPI" "build")
