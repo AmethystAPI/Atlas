@@ -13,12 +13,13 @@
 
 class Minimap : public BlockSourceListener {
 private:
-    std::unordered_map<uint64_t, mce::Mesh> mChunkPosToMesh;
+    std::vector<std::unordered_map<uint64_t, mce::Mesh>> mDimChunkToMesh;
     Tessellator* mTes;
     mce::MaterialPtr* mMinimapMaterial;
     bool mHasLoadedTextures = false;
 
     mce::TexturePtr mMinimapOutline;
+    mce::TexturePtr mMinimapPosIcon;
     Amethyst::NinesliceHelper mOutlineNineslice;
 
 public:
@@ -37,5 +38,5 @@ public:
     virtual void onBlockChanged(BlockSource& source, const BlockPos& pos, uint32_t layer, const Block& block, const Block& oldBlock, int updateFlags, const ActorBlockSyncMessage* syncMsg, BlockChangedEventTarget eventTarget, Actor* blockChangeSource) override;
 
 private:
-    std::optional<mce::Color> GetColor(int xPos, int zPos) const;
+    mce::Color GetColor(int xPos, int zPos) const;
 };

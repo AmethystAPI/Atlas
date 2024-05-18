@@ -1,7 +1,4 @@
 #include "Minimap.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <set>
 #include <amethyst/ui/NinesliceHelper.hpp>
 #include <minecraft/src/common/world/level/block/Block.hpp>
 #include <minecraft/src/common/world/level/block/BlockLegacy.hpp>
@@ -42,7 +39,7 @@ int countBlockNeighbors(const BlockSource* region, int xPos, int yPos, int zPos)
     return count;
 }
 
-std::optional<mce::Color> Minimap::GetColor(int xPos, int zPos) const
+mce::Color Minimap::GetColor(int xPos, int zPos) const
 {
     BlockSource* region = mClient->getRegion();
 
@@ -75,11 +72,14 @@ std::optional<mce::Color> Minimap::GetColor(int xPos, int zPos) const
         }
     }
 
-    return std::nullopt;
+    return mce::Color(0, 0, 0, 0xFF);
 }
 
 void Minimap::UpdateChunk(ChunkPos chunkPos)
 {
+    BlockSource* region = mClient->getRegion();
+    uint8_t dimId = region->getDimensionConst().mId;
+
     mTes->begin(mce::TriangleList, 16 * 16);
 
     int worldX = chunkPos.x * 16;
@@ -89,15 +89,14 @@ void Minimap::UpdateChunk(ChunkPos chunkPos)
 
     for (int chunkX = 0; chunkX < 16; chunkX++) {
         for (int chunkZ = 0; chunkZ < 16; chunkZ++) {
-            // Sample the colour of the current block
-            auto colorOpt = GetColor(worldX + chunkX, worldZ + chunkZ);
-
-            if (!colorOpt.has_value()) {
+            if (!region->areChunksFullyLoaded(BlockPos(chunkPos.x * 16 + chunkX, 0, chunkPos.z * 16 + chunkZ), 1)) {
                 mTes->clear();
                 return;
             }
 
-            mce::Color color = colorOpt.value();
+            // Sample the colour of the current block
+            auto color = GetColor(worldX + chunkX, worldZ + chunkZ);
+
             mTes->color(color.r, color.g, color.b, color.a);
 
             // Draw each block with 2 triangles
@@ -117,14 +116,22 @@ void Minimap::UpdateChunk(ChunkPos chunkPos)
 
     mce::Mesh mesh = mTes->end(0, "Untagged Minimap Chunk", 0);
     mTes->clear();
-    mChunkPosToMesh[chunkPos.packed] = mesh;
+
+    mDimChunkToMesh[dimId][chunkPos.packed] = mesh;
 }
 
 void Minimap::Render(MinecraftUIRenderContext* uiCtx)
 {
+    BlockSource* region = mClient->getRegion();
+    uint8_t dimId = region->getDimensionConst().mId;
+
     if (!mHasLoadedTextures) {
-        ResourceLocation resource("textures/ui/minimap_border");
-        mMinimapOutline = uiCtx->getTexture(&resource, true);
+        ResourceLocation outlineResource("textures/ui/minimap_border");
+        mMinimapOutline = uiCtx->getTexture(&outlineResource, true);
+
+        ResourceLocation posIconResource("textures/ui/minimap_pos_icon");
+        mMinimapPosIcon = uiCtx->getTexture(&posIconResource, true);
+
         mHasLoadedTextures = true;
     }
 
@@ -169,10 +176,19 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     for (auto& chunk : mChunksToRender)
     {
         ChunkPos chunkPos = chunk.first;
-        auto mesh = mChunkPosToMesh.find(chunkPos.packed);
 
-        // The chunk has not had a mesh generated yet
-        if (mesh == mChunkPosToMesh.end()) {
+        // Bounds check
+        if (dimId + 1 > mDimChunkToMesh.size()) {
+            // Resize and insert the default value if dim missing
+            mDimChunkToMesh.resize(dimId + 1, std::unordered_map<uint64_t, mce::Mesh>());
+        }
+
+        auto& chunkMap = mDimChunkToMesh[dimId];
+
+        auto mesh = chunkMap.find(chunkPos.packed);
+
+        // The chunk in the dimension has not had a mesh generated yet
+        if (mesh == chunkMap.end()) {
             // Dont generate too much at once. Minimap doesn't need a high priority
             if (chunksGeneratedThisFrame >= mMaxChunksToGeneratePerFrame) continue;
 
@@ -198,24 +214,51 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     // Remove our clipping rectangle for the minimap renderer
     uiCtx->restoreSavedClippingRectangle();
 
-    // Draw mainimap border
-    // TODO: The stenciling in MinecraftUIRenderContext has an off by 1 error
+    // Draw minimap border
+    // The stenciling in MinecraftUIRenderContext has an off by 1 error
     // Also crashes on world leave
-//    rect._x0 -= 1;
-//    rect._y0 -= 1;
-//    mOutlineNineslice.Draw(rect, &mMinimapOutline, uiCtx);
-//    HashedString flushString(0xA99285D21E94FC80, "ui_flush");
-//    uiCtx->flushImages(mce::Color::WHITE, 1.0f, flushString);
+    rect._x0 -= 1;
+    rect._y0 -= 1;
 
+    mOutlineNineslice.Draw(rect, &mMinimapOutline, uiCtx);
+    HashedString flushString(0xA99285D21E94FC80, "ui_flush");
+    uiCtx->flushImages(mce::Color::WHITE, 1.0f, flushString);
+
+    // Draw player position icon
     float midX = (rect._x0 + 1 + rect._x1) / 2.0f;
     float midY = (rect._y0 + 1 + rect._y1) / 2.0f;
-    RectangleArea midRect{ midX - 1.0f, midX + 1.0f, midY - 1.0f, midY + 1.0f };
-    uiCtx->drawRectangle(&midRect, &mce::Color::WHITE, 1.0f, 1);
+
+    ActorRotationComponent* playerRotation = uiCtx->mClient->getLocalPlayer()->tryGetComponent<ActorRotationComponent>();
+
+    mTes->begin(mce::PrimitiveMode::TriangleList, 2);
+
+    for (auto& vert : vertexes) {
+        float size = 15;
+
+        mTes->color(vert.x, vert.y, vert.z, 1.0f);
+
+        vert = vert * Vec3(size, size, 1.0f);
+
+        vert.x += midX - size / 2;
+        vert.y += midY - size / 2;
+
+        vert.rotateAroundPointDegrees(
+            Vec3(midX, midY, 1.0f),
+            Vec3(0.0f, 0.0f, playerRotation->mHeadRotPrev.y)
+            );
+
+        mTes->vertex(vert);
+    }
+
+    mce::Mesh mesh = mTes->end(0, "player_pos_icon", 0);
+    mTes->clear();
+
+    mesh.renderMesh(uiCtx->mScreenContext, mMinimapMaterial);
 }
 
 void Minimap::ClearCache()
 {
-    mChunkPosToMesh.clear();
+    mDimChunkToMesh.clear();
 }
 
 void Minimap::onBlockChanged(BlockSource& source, const BlockPos& pos, uint32_t layer, const Block& block, const Block& oldBlock, int updateFlags, const ActorBlockSyncMessage* syncMsg, BlockChangedEventTarget eventTarget, Actor* blockChangeSource)
