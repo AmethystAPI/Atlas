@@ -230,7 +230,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
 
     ActorRotationComponent* playerRotation = uiCtx->mClient->getLocalPlayer()->tryGetComponent<ActorRotationComponent>();
 
-    mTes->begin(mce::PrimitiveMode::TriangleList, 3*2);
+    mTes->begin(mce::PrimitiveMode::TriangleList, 2);
 
     for (auto& vert : vertexes) {
         float size = 15;
@@ -250,7 +250,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
         mTes->vertex(transformedVert);
     }
 
-    mce::Mesh mesh = mTes->end(1, "player_pos_icon", 1);
+    mce::Mesh mesh = mTes->end(0, "player_pos_icon", 0);
     mTes->clear();
 
     mesh.renderMesh(uiCtx->mScreenContext, mMinimapMaterial);
