@@ -3,9 +3,11 @@
 #include <minecraft/src/common/world/level/block/Block.hpp>
 #include <minecraft/src/common/world/level/block/BlockLegacy.hpp>
 
-Vec3 vertexes[6] = {
-    Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f),
-    Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f)
+Vec3 vertexes[4] = {
+    Vec3(0.0f, 0.0f, 0.0f),
+    Vec3(0.0f, 1.0f, 0.0f),
+    Vec3(1.0f, 1.0f, 0.0f),
+    Vec3(1.0f, 0.0f, 0.0f),
 };
 
 Minimap::Minimap(ClientInstance* client, Tessellator* tes)
@@ -80,7 +82,7 @@ void Minimap::UpdateChunk(ChunkPos chunkPos)
     BlockSource* region = mClient->getRegion();
     uint8_t dimId = region->getDimensionConst().mId;
 
-    mTes->begin(mce::TriangleList, 16 * 16);
+    mTes->begin(mce::QuadList, 16 * 16);
 
     int worldX = chunkPos.x * 16;
     int worldZ = chunkPos.z * 16;
@@ -230,7 +232,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
 
     ActorRotationComponent* playerRotation = uiCtx->mClient->getLocalPlayer()->tryGetComponent<ActorRotationComponent>();
 
-    mTes->begin(mce::PrimitiveMode::TriangleList, 2);
+    mTes->begin(mce::PrimitiveMode::QuadList, 1);
 
     for (auto& vert : vertexes) {
         float size = 15;
