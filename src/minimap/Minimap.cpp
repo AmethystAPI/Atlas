@@ -59,7 +59,7 @@ mce::Color Minimap::GetColor(int xPos, int zPos) const
             color.a = 1.0f;
 
             // If the block has little neighbors, its higher than surrounding blocks, shade bright
-            // if has many neighbors shade normally.
+            // If has many neighbors shade normally.
             float blocksAbove = (float)countBlockNeighbors(region, xPos, y + 1, zPos) / 4;
 
             float start = 0.9f;
@@ -74,29 +74,26 @@ mce::Color Minimap::GetColor(int xPos, int zPos) const
         }
     }
 
-    return mce::Color(0, 0, 0, 0xFF);
+    return {0, 0, 0, 0xFF};
 }
 
 void Minimap::UpdateChunk(ChunkPos chunkPos)
 {
     BlockSource* region = mClient->getRegion();
-    uint8_t dimId = region->getDimensionConst().mId;
 
     mTes->begin(mce::QuadList, 16 * 16);
 
     int worldX = chunkPos.x * 16;
     int worldZ = chunkPos.z * 16;
 
-    float pixelUnitSize = mClient->guiData->clientUIScreenSize.x / mClient->guiData->clientScreenSize.x;
+    [[unlikely]]
+    if (!region->areChunksFullyLoaded(BlockPos(chunkPos.x * 16, 0, chunkPos.z * 16), 1)) {
+        mTes->clear();
+        return;
+    }
 
     for (int chunkX = 0; chunkX < 16; chunkX++) {
         for (int chunkZ = 0; chunkZ < 16; chunkZ++) {
-            [[unlikely]]
-            if (!region->areChunksFullyLoaded(BlockPos(chunkPos.x * 16 + chunkX, 0, chunkPos.z * 16 + chunkZ), 1)) {
-                mTes->clear();
-                return;
-            }
-
             // Sample the colour of the current block
             auto color = GetColor(worldX + chunkX, worldZ + chunkZ);
 
@@ -160,6 +157,10 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
 
     Vec3* playerPos = uiCtx->mClient->getLocalPlayer()->getPosition();
     ChunkPos playerChunkPos = ChunkPos((int)playerPos->x / 16, (int)playerPos->z / 16);
+
+    Log::Info("size: {}", ((sizeof(uint64_t)+sizeof(mce::Mesh))* mChunkToMesh.size())+sizeof(mChunkToMesh));
+    this->CollectNotLoadedChunks(playerChunkPos);
+
     int chunksGeneratedThisFrame = 0;
 
     // chunkPos, distance to player
@@ -258,6 +259,28 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     mTes->clear();
 
     mesh.renderMesh(uiCtx->mScreenContext, mMinimapMaterial);
+}
+
+void Minimap::CollectNotLoadedChunks(ChunkPos playerChunkPos) {
+    int radius_squared = (int)(mMinimapSize + mCullingExemptDistance)^2;
+
+    auto it = mChunkToMesh.begin();
+    while (it != mChunkToMesh.end()) {
+        ChunkPos chunkPos(it->first);
+
+        int dx = chunkPos.x - playerChunkPos.x;
+        int dz = chunkPos.z - playerChunkPos.z;
+
+        // Calculate squared distance to avoid sqrt for performance
+        int distanceSquared = dx * dx + dz * dz;
+
+        // Erase the chunk if it's beyond the render distance
+        if (distanceSquared > radius_squared) {
+            it = mChunkToMesh.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 void Minimap::ClearCache()

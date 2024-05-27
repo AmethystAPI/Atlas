@@ -27,6 +27,7 @@ private:
 public:
     ClientInstance* mClient;
     int mRenderDistance = 6;
+    int mCullingExemptDistance = 3;
     int mMaxChunksToGeneratePerFrame = 16;
     float mMinimapSize;
     float mMinimapEdgeBorder;
@@ -41,4 +42,5 @@ public:
 
 private:
     mce::Color GetColor(int xPos, int zPos) const;
+    void CollectNotLoadedChunks(ChunkPos playerChunkPos);
 };
