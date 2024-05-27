@@ -120,13 +120,20 @@ void Minimap::UpdateChunk(ChunkPos chunkPos)
     mce::Mesh mesh = mTes->end(0, "Untagged Minimap Chunk", 0);
     mTes->clear();
 
-    mDimChunkToMesh[dimId][chunkPos.packed] = mesh;
+    mChunkToMesh[chunkPos.packed] = mesh;
 }
 
 void Minimap::Render(MinecraftUIRenderContext* uiCtx)
 {
     BlockSource* region = mClient->getRegion();
     uint8_t dimId = region->getDimensionConst().mId;
+
+    [[unlikely]]
+    // If the player entered another dimension clear the cache
+    if (mLastDimID != dimId) {
+        mLastDimID = dimId;
+        this->ClearCache();
+    }
 
     [[unlikely]]
     if (!mHasLoadedTextures) {
@@ -181,19 +188,11 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     {
         ChunkPos chunkPos = chunk.first;
 
-        // Bounds check
-        if (dimId + 1 > mDimChunkToMesh.size()) {
-            // Resize and insert the default value if dim missing
-            mDimChunkToMesh.resize(dimId + 1, std::unordered_map<uint64_t, mce::Mesh>());
-        }
-
-        auto& chunkMap = mDimChunkToMesh[dimId];
-
-        auto mesh = chunkMap.find(chunkPos.packed);
+        auto mesh = mChunkToMesh.find(chunkPos.packed);
 
         // The chunk in the dimension has not had a mesh generated yet
         [[unlikely]]
-        if (mesh == chunkMap.end()) {
+        if (mesh == mChunkToMesh.end()) {
             // Dont generate too much at once. Minimap doesn't need a high priority
             if (chunksGeneratedThisFrame >= mMaxChunksToGeneratePerFrame) continue;
 
@@ -263,7 +262,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
 
 void Minimap::ClearCache()
 {
-    mDimChunkToMesh.clear();
+    mChunkToMesh.clear();
 }
 
 void Minimap::onBlockChanged(BlockSource& source, const BlockPos& pos, uint32_t layer, const Block& block, const Block& oldBlock, int updateFlags, const ActorBlockSyncMessage* syncMsg, BlockChangedEventTarget eventTarget, Actor* blockChangeSource)

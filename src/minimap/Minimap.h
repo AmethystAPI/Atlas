@@ -13,7 +13,7 @@
 
 class Minimap : public BlockSourceListener {
 private:
-    std::vector<std::unordered_map<uint64_t, mce::Mesh>> mDimChunkToMesh;
+    std::unordered_map<uint64_t, mce::Mesh> mChunkToMesh;
     Tessellator* mTes;
     mce::MaterialPtr* mMinimapMaterial;
     bool mHasLoadedTextures = false;
@@ -21,6 +21,8 @@ private:
     mce::TexturePtr mMinimapOutline;
     mce::TexturePtr mMinimapPosIcon;
     Amethyst::NinesliceHelper mOutlineNineslice;
+
+    uint8_t mLastDimID;
 
 public:
     ClientInstance* mClient;
