@@ -158,8 +158,11 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     Vec3* playerPos = uiCtx->mClient->getLocalPlayer()->getPosition();
     ChunkPos playerChunkPos = ChunkPos((int)playerPos->x / 16, (int)playerPos->z / 16);
 
-    Log::Info("size: {}", ((sizeof(uint64_t)+sizeof(mce::Mesh))* mChunkToMesh.size())+sizeof(mChunkToMesh));
-    this->CullChunks(playerChunkPos);
+    [[unlikely]]
+    if (mFramesSinceLastCull >= mFrameCullInterval) {
+        mFramesSinceLastCull = 0;
+        this->CullChunks(playerChunkPos);
+    }
 
     int chunksGeneratedThisFrame = 0;
 
@@ -265,8 +268,15 @@ void Minimap::CullChunks(ChunkPos playerChunkPos) {
     int radius = (mRenderDistance + mCullingExemptDistance) * 2;
     int radius_squared = radius * radius;
 
+    int culled_chunks = 0;
+
     auto it = mChunkToMesh.begin();
     while (it != mChunkToMesh.end()) {
+        [[unlikely]]
+        if (culled_chunks >= mMaxChunksToCullPerCull) {
+            return;
+        }
+
         ChunkPos chunkPos((int64_t)it->first);
 
         int dx = chunkPos.x - playerChunkPos.x;
@@ -278,6 +288,7 @@ void Minimap::CullChunks(ChunkPos playerChunkPos) {
         // Erase the chunk if it's beyond the render distance
         if (distanceSquared > radius_squared) {
             it = mChunkToMesh.erase(it);
+            culled_chunks++;
         } else {
             ++it;
         }

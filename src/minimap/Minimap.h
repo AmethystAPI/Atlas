@@ -23,11 +23,14 @@ private:
     Amethyst::NinesliceHelper mOutlineNineslice;
 
     uint8_t mLastDimID;
+    int mFramesSinceLastCull;
 
 public:
     ClientInstance* mClient;
     int mRenderDistance = 6;
     int mCullingExemptDistance = 3;
+    int mFrameCullInterval = 30;
+    int mMaxChunksToCullPerCull = 32;
     int mMaxChunksToGeneratePerFrame = 16;
     float mMinimapSize;
     float mMinimapEdgeBorder;
