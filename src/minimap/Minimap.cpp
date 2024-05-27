@@ -159,7 +159,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     ChunkPos playerChunkPos = ChunkPos((int)playerPos->x / 16, (int)playerPos->z / 16);
 
     Log::Info("size: {}", ((sizeof(uint64_t)+sizeof(mce::Mesh))* mChunkToMesh.size())+sizeof(mChunkToMesh));
-    this->CollectNotLoadedChunks(playerChunkPos);
+    this->CullChunks(playerChunkPos);
 
     int chunksGeneratedThisFrame = 0;
 
@@ -261,7 +261,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     mesh.renderMesh(uiCtx->mScreenContext, mMinimapMaterial);
 }
 
-void Minimap::CollectNotLoadedChunks(ChunkPos playerChunkPos) {
+void Minimap::CullChunks(ChunkPos playerChunkPos) {
     int radius = (mRenderDistance + mCullingExemptDistance) * 2;
     int radius_squared = radius * radius;
 

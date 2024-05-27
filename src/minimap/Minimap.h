@@ -42,5 +42,5 @@ public:
 
 private:
     mce::Color GetColor(int xPos, int zPos) const;
-    void CollectNotLoadedChunks(ChunkPos playerChunkPos);
+    void CullChunks(ChunkPos playerChunkPos);
 };
