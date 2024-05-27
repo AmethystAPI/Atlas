@@ -262,7 +262,8 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
 }
 
 void Minimap::CollectNotLoadedChunks(ChunkPos playerChunkPos) {
-    int radius_squared = (int)(mMinimapSize + mCullingExemptDistance)^2;
+    int radius = (mRenderDistance + mCullingExemptDistance) * 2;
+    int radius_squared = radius * radius;
 
     auto it = mChunkToMesh.begin();
     while (it != mChunkToMesh.end()) {
