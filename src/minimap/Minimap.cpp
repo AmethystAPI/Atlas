@@ -266,14 +266,14 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
 
 void Minimap::CullChunks(ChunkPos playerChunkPos) {
     int radius = (mRenderDistance + mCullingExemptDistance) * 2;
-    int radius_squared = radius * radius;
+    int radiusSquared = radius * radius;
 
-    int culled_chunks = 0;
+    int culledChunks = 0;
 
     auto it = mChunkToMesh.begin();
     while (it != mChunkToMesh.end()) {
         [[unlikely]]
-        if (culled_chunks >= mMaxChunksToCullPerCull) {
+        if (culledChunks >= mMaxChunksToCullPerCull) {
             return;
         }
 
@@ -286,9 +286,9 @@ void Minimap::CullChunks(ChunkPos playerChunkPos) {
         int distanceSquared = dx * dx + dz * dz;
 
         // Erase the chunk if it's beyond the render distance
-        if (distanceSquared > radius_squared) {
+        if (distanceSquared > radiusSquared) {
             it = mChunkToMesh.erase(it);
-            culled_chunks++;
+            culledChunks++;
         } else {
             ++it;
         }
