@@ -267,7 +267,7 @@ void Minimap::CullChunks(ChunkPos playerChunkPos) {
 
     auto it = mChunkToMesh.begin();
     while (it != mChunkToMesh.end()) {
-        ChunkPos chunkPos(it->first);
+        ChunkPos chunkPos((int64_t)it->first);
 
         int dx = chunkPos.x - playerChunkPos.x;
         int dz = chunkPos.z - playerChunkPos.z;
