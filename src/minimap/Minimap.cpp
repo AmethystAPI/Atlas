@@ -48,7 +48,7 @@ mce::Color Minimap::GetColor(int xPos, int zPos) const
     short maxY = region->getMaxHeight();
     short minY = region->getMinHeight();
 
-    for (int y = maxY; y > minY; --y) {
+    for (int y = maxY; y >= minY; --y) {
         const Block* block = &region->getBlock(xPos, y, zPos);
 
         if (block->mLegacyBlock->mID != 0) {
