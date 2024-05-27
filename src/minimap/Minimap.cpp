@@ -55,7 +55,7 @@ mce::Color Minimap::GetColor(int xPos, int zPos) const
             // Get the blocks map color
             mce::Color color = block->getMapColor(*region, BlockPos(xPos, y, zPos));
 
-            if (color.r == 0.0f && color.g == 0.0f && color.b == 0.0f && color.a == 0.0f) continue;
+            if (color.a == 0.0f) continue;
             color.a = 1.0f;
 
             // If the block has little neighbors, its higher than surrounding blocks, shade bright
@@ -91,6 +91,7 @@ void Minimap::UpdateChunk(ChunkPos chunkPos)
 
     for (int chunkX = 0; chunkX < 16; chunkX++) {
         for (int chunkZ = 0; chunkZ < 16; chunkZ++) {
+            [[unlikely]]
             if (!region->areChunksFullyLoaded(BlockPos(chunkPos.x * 16 + chunkX, 0, chunkPos.z * 16 + chunkZ), 1)) {
                 mTes->clear();
                 return;
@@ -127,6 +128,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     BlockSource* region = mClient->getRegion();
     uint8_t dimId = region->getDimensionConst().mId;
 
+    [[unlikely]]
     if (!mHasLoadedTextures) {
         ResourceLocation outlineResource("textures/ui/minimap_border");
         mMinimapOutline = uiCtx->getTexture(&outlineResource, true);
@@ -190,6 +192,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
         auto mesh = chunkMap.find(chunkPos.packed);
 
         // The chunk in the dimension has not had a mesh generated yet
+        [[unlikely]]
         if (mesh == chunkMap.end()) {
             // Dont generate too much at once. Minimap doesn't need a high priority
             if (chunksGeneratedThisFrame >= mMaxChunksToGeneratePerFrame) continue;

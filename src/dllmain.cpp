@@ -12,6 +12,7 @@ void OnRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContex
     if (uiRenderContext->mClient == nullptr || client->getRegion() == nullptr) return;
 
     // Ensure we have a minimap
+    [[unlikely]]
     if (!minimap)
     {
         minimap = new Minimap(client, tes);
@@ -19,6 +20,7 @@ void OnRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContex
 
     if (screenView->visualTree->mRootControlName->mName == "hud_screen") 
     {
+        [[unlikely]]
         if (!hasAddedRegionListener) {
             client->getRegion()->addListener(*minimap);
             hasAddedRegionListener = true;
