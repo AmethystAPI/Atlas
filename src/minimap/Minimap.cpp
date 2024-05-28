@@ -238,7 +238,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
 
     ActorRotationComponent* playerRotation = uiCtx->mClient->getLocalPlayer()->tryGetComponent<ActorRotationComponent>();
 
-    mTes->begin(mce::PrimitiveMode::QuadList, 1);
+    mTes->begin(mce::PrimitiveMode::QuadList, 4);
 
     for (auto& vert : vertexes) {
         float size = 15;
@@ -255,7 +255,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
             Vec3(0.0f, 0.0f, playerRotation->mHeadRotPrev.y)
             );
 
-        mTes->vertex(transformedVert);
+        mTes->vertexUV(transformedVert, vert.x, vert.y);
     }
 
     mce::Mesh mesh = mTes->end(0, "player_pos_icon", 0);
