@@ -243,8 +243,6 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     for (auto& vert : vertexes) {
         float size = 15;
 
-        //mTes->color(1, 1, 1, 1.0f);
-
         Vec3 transformedVert = vert * Vec3(size, size, 1.0f);
 
         transformedVert.x += midX - size / 2;
