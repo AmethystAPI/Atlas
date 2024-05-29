@@ -55,7 +55,7 @@ mce::Color Minimap::GetColor(int xPos, int zPos) const
             // Get the blocks map color
             mce::Color color = block->getMapColor(*region, BlockPos(xPos, y, zPos));
 
-            if (color.a == 0.0f) continue;
+            if (color.r == 0 && color.g == 0 && color.b == 0 && color.a == 0.0f) continue;
             color.a = 1.0f;
 
             // If the block has little neighbors, its higher than surrounding blocks, shade bright
@@ -243,7 +243,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     for (auto& vert : vertexes) {
         float size = 15;
 
-        mTes->color(vert.x, vert.y, vert.z, 1.0f);
+        //mTes->color(1, 1, 1, 1.0f);
 
         Vec3 transformedVert = vert * Vec3(size, size, 1.0f);
 
@@ -255,13 +255,14 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
             Vec3(0.0f, 0.0f, playerRotation->mHeadRotPrev.y)
             );
 
-        mTes->vertexUV(transformedVert, vert.x, vert.y);
+        mTes->vertexUV(transformedVert.x, transformedVert.y, transformedVert.z, vert.x, vert.y);
     }
 
     mce::Mesh mesh = mTes->end(0, "player_pos_icon", 0);
     mTes->clear();
 
-    mesh.renderMesh(uiCtx->mScreenContext, mMinimapMaterial);
+    std::variant<std::monostate, mce::TexturePtr> posIconTexture = mMinimapOutline;
+    mesh.renderMesh(uiCtx->mScreenContext, mMinimapMaterial, &posIconTexture);
 }
 
 void Minimap::CullChunks(ChunkPos playerChunkPos) {
