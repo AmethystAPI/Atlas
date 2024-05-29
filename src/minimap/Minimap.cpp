@@ -253,13 +253,13 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
             Vec3(0.0f, 0.0f, playerRotation->mHeadRotPrev.y)
             );
 
-        mTes->vertexUV(transformedVert.x, transformedVert.y, transformedVert.z, vert.x, vert.y);
+        mTes->vertexUV(transformedVert, vert.x, vert.y);
     }
 
     mce::Mesh mesh = mTes->end(0, "player_pos_icon", 0);
     mTes->clear();
 
-    std::variant<std::monostate, mce::TexturePtr> posIconTexture = mMinimapOutline;
+    std::variant<std::monostate, mce::TexturePtr> posIconTexture = mMinimapPosIcon;
     mesh.renderMesh(uiCtx->mScreenContext, mMinimapMaterial, &posIconTexture);
 }
 
