@@ -2,6 +2,7 @@
 #include <amethyst/ui/NinesliceHelper.hpp>
 #include <minecraft/src/common/world/level/block/Block.hpp>
 #include <minecraft/src/common/world/level/block/BlockLegacy.hpp>
+#include <minecraft/src/common/world/level/dimension/Dimension.hpp>
 
 Vec3 vertexes[4] = {
     Vec3(0.0f, 0.0f, 0.0f),
@@ -15,7 +16,7 @@ Minimap::Minimap(ClientInstance* client, Tessellator* tes)
 {
     mClient = client;
     mTes = tes;
-    mMinimapMaterial = reinterpret_cast<mce::MaterialPtr*>(SlideAddress(0x5853DB0));
+    mMinimapMaterial = reinterpret_cast<mce::MaterialPtr*>(SlideAddress(0x59BD7E0));
 
     mMinimapEdgeBorder = 3.0f;
     mMinimapSize = 128.0f;
@@ -236,7 +237,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     float midX = (rect._x0 + 1 + rect._x1) / 2.0f;
     float midY = (rect._y0 + 1 + rect._y1) / 2.0f;
 
-    ActorRotationComponent* playerRotation = uiCtx->mClient->getLocalPlayer()->tryGetComponent<ActorRotationComponent>();
+    Vec2* headRot = uiCtx->mClient->getLocalPlayer()->getHeadRot();
 
     mTes->begin(mce::PrimitiveMode::QuadList, 4);
 
@@ -249,9 +250,9 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
         transformedVert.y += midY - size / 2;
 
         transformedVert.rotateAroundPointDegrees(
-            Vec3(midX, midY, 1.0f),
-            Vec3(0.0f, 0.0f, playerRotation->mHeadRotPrev.y)
-            );
+            Vec3(midX, midY, headRot->y),
+            Vec3(0.0f, 0.0f, 0.0f)
+        );
 
         mTes->vertexUV(transformedVert, vert.x, vert.y);
     }
@@ -259,8 +260,10 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     mce::Mesh mesh = mTes->end(0, "player_pos_icon", 0);
     mTes->clear();
 
-    std::variant<std::monostate, mce::TexturePtr> posIconTexture = mMinimapPosIcon;
-    mesh.renderMesh(uiCtx->mScreenContext, mMinimapMaterial, &posIconTexture);
+    mesh.renderMesh(uiCtx->mScreenContext, mMinimapMaterial);
+   
+    //std::variant<std::monostate, mce::TexturePtr> posIconTexture = mMinimapPosIcon;
+    //mesh.renderMesh(uiCtx->mScreenContext, mMinimapMaterial, &posIconTexture);
 }
 
 void Minimap::CullChunks(ChunkPos playerChunkPos) {
