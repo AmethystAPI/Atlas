@@ -82,7 +82,7 @@ void Minimap::UpdateChunk(ChunkPos chunkPos)
 {
     BlockSource* region = mClient->getRegion();
 
-    mTes->begin(mce::QuadList, 16 * 16);
+    mTes->begin(mce::PrimitiveMode::QuadList, 16 * 16);
 
     int worldX = chunkPos.x * 16;
     int worldZ = chunkPos.z * 16;
@@ -216,7 +216,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
         // Chunks are drawn from the top left corner of the screen, so translate them to their intended position on screen
         // Then undo that translation as not to screw up minecrafts rendering, or rendering of other minimap chunks
         matrix.translate(xChunkTranslation, zChunkTranslation, 0.0f);
-        mesh->second.renderMesh(uiCtx->mScreenContext, mMinimapMaterial);
+        mesh->second.renderMesh(*uiCtx->mScreenContext, *mMinimapMaterial);
         matrix = originalMatrix;
     }
 
@@ -230,7 +230,7 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     rect._y0 -= 1;
 
     mOutlineNineslice.Draw(rect, &mMinimapOutline, uiCtx);
-    HashedString flushString(0xA99285D21E94FC80, "ui_flush");
+    HashedString flushString(0xA99285D21E94FC80, "entity_alphablend");
     uiCtx->flushImages(mce::Color::WHITE, 1.0f, flushString);
 
     // Draw player position icon
@@ -260,10 +260,10 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     mce::Mesh mesh = mTes->end(0, "player_pos_icon", 0);
     mTes->clear();
 
-    mesh.renderMesh(uiCtx->mScreenContext, mMinimapMaterial);
+    mesh.renderMesh(*uiCtx->mScreenContext, *mMinimapMaterial);
    
-    //std::variant<std::monostate, mce::TexturePtr> posIconTexture = mMinimapPosIcon;
-    //mesh.renderMesh(uiCtx->mScreenContext, mMinimapMaterial, &posIconTexture);
+    const std::variant<std::monostate, mce::TexturePtr, mce::ClientTexture, mce::ServerTexture> posIconTexture = mMinimapPosIcon;
+    mesh.renderMesh(*uiCtx->mScreenContext, *mMinimapMaterial, posIconTexture);
 }
 
 void Minimap::CullChunks(ChunkPos playerChunkPos) {
