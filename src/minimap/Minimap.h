@@ -1,17 +1,17 @@
 #pragma once
-#include <unordered_map>
-#include <minecraft/src/common/world/level/ChunkPos.hpp>
-#include <minecraft/src-deps/minecraftrenderer/renderer/Mesh.hpp>
-#include <minecraft/src-client/common/client/renderer/screen/MinecraftUIRenderContext.hpp>
-#include <minecraft/src-client/common/client/renderer/helpers/MeshHelpers.hpp>
-#include <minecraft/src/common/world/level/block/Block.hpp>
-#include <minecraft/src/common/world/level/BlockSourceListener.hpp>
-#include <minecraft/src-deps/core/resource/ResourceHelper.hpp>
-#include <minecraft/src-client/common/client/renderer/TexturePtr.hpp>
-#include <glm/glm.hpp>
 #include <amethyst/ui/NinesliceHelper.hpp>
+#include <glm/glm.hpp>
+#include <minecraft/src-client/common/client/renderer/TexturePtr.hpp>
+#include <minecraft/src-client/common/client/renderer/helpers/MeshHelpers.hpp>
+#include <minecraft/src-client/common/client/renderer/screen/MinecraftUIRenderContext.hpp>
+#include <minecraft/src-deps/core/resource/ResourceHelper.hpp>
+#include <minecraft/src-deps/minecraftrenderer/renderer/Mesh.hpp>
+#include <minecraft/src/common/world/level/chunk/LevelChunk.hpp>
+#include <minecraft/src/common/world/level/LevelListener.hpp>
+#include <minecraft/src/common/world/level/block/Block.hpp>
+#include <unordered_map>
 
-class Minimap : public BlockSourceListener {
+class Minimap : public LevelListener {
 private:
     std::unordered_map<uint64_t, mce::Mesh> mChunkToMesh;
     Tessellator* mTes;
@@ -27,10 +27,7 @@ private:
 
 public:
     ClientInstance* mClient;
-    int mRenderDistance = 6;
-    int mCullingExemptDistance = 3;
-    int mFrameCullInterval = 30;
-    int mMaxChunksToCullPerCull = 32;
+    int mRenderDistance = 32;
     int mMaxChunksToGeneratePerFrame = 16;
     float mMinimapSize;
     float mMinimapEdgeBorder;
@@ -41,9 +38,13 @@ public:
     void UpdateChunk(ChunkPos chunkPos);
     void Render(MinecraftUIRenderContext* uiCtx);
     void ClearCache();
+
     virtual void onBlockChanged(BlockSource& source, const BlockPos& pos, uint32_t layer, const Block& block, const Block& oldBlock, int updateFlags, const ActorBlockSyncMessage* syncMsg, BlockChangedEventTarget eventTarget, Actor* blockChangeSource) override;
+
+    virtual void onChunkLoaded(ChunkSource& source, LevelChunk& lc) override;
+    virtual void onChunkUnloaded(LevelChunk& lc) override;
 
 private:
     mce::Color GetColor(int xPos, int zPos) const;
-    void CullChunks(ChunkPos playerChunkPos);
+    void CullChunk(ChunkPos pos);
 };
