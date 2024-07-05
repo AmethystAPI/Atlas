@@ -151,60 +151,60 @@ void Minimap::Render(MinecraftUIRenderContext* uiCtx)
     Vec3* playerPos = uiCtx->mClient->getLocalPlayer()->getPosition();
     ChunkPos playerChunkPos = ChunkPos((int)playerPos->x / 16, (int)playerPos->z / 16);
 
-//    int chunksGeneratedThisFrame = 0;
-//
-//    // chunkPos, distance to player
-//    std::vector<std::pair<ChunkPos, double>> mChunksToRender;
-//
-//    for (int x = -mRenderDistance - 1; x <= mRenderDistance + 1; x++) {
-//        for (int z = -mRenderDistance - 1; z <= mRenderDistance + 1; z++) {
-//            ChunkPos chunkPos(x + playerChunkPos.x, z + playerChunkPos.z);
-//
-//            double distance = sqrt(
-//                (chunkPos.x - playerChunkPos.x) * (chunkPos.x - playerChunkPos.x) +
-//                (chunkPos.z - playerChunkPos.z) * (chunkPos.z - playerChunkPos.z)
-//            );
-//
-//            mChunksToRender.push_back(std::make_pair(chunkPos, distance));
-//        }
-//    }
-//
-//    // Sort the chunks in order of distance, so closer chunks are prioritised
-//    std::sort(mChunksToRender.begin(), mChunksToRender.end(), [](std::pair<ChunkPos, double> a, std::pair<ChunkPos, double> b) {
-//        return a.second < b.second;
-//        });
-//
-//    // Render each chunk in the players minimap render distance.
-//    for (auto& chunk : mChunksToRender)
-//    {
-//        ChunkPos chunkPos = chunk.first;
-//
-//        auto mesh = mChunkToMesh.find(chunkPos.packed);
-//
-//        // The chunk in the dimension has not had a mesh generated yet
-//        [[unlikely]]
-//        if (mesh == mChunkToMesh.end()) {
+    int chunksGeneratedThisFrame = 0;
+
+    // chunkPos, distance to player
+    std::vector<std::pair<ChunkPos, double>> mChunksToRender;
+
+    for (int x = -mRenderDistance - 1; x <= mRenderDistance + 1; x++) {
+        for (int z = -mRenderDistance - 1; z <= mRenderDistance + 1; z++) {
+            ChunkPos chunkPos(x + playerChunkPos.x, z + playerChunkPos.z);
+
+            double distance = sqrt(
+                (chunkPos.x - playerChunkPos.x) * (chunkPos.x - playerChunkPos.x) +
+                (chunkPos.z - playerChunkPos.z) * (chunkPos.z - playerChunkPos.z)
+            );
+
+            mChunksToRender.push_back(std::make_pair(chunkPos, distance));
+        }
+    }
+
+    // Sort the chunks in order of distance, so closer chunks are prioritised
+    std::sort(mChunksToRender.begin(), mChunksToRender.end(), [](std::pair<ChunkPos, double> a, std::pair<ChunkPos, double> b) {
+        return a.second < b.second;
+        });
+
+    // Render each chunk in the players minimap render distance.
+    for (auto& chunk : mChunksToRender)
+    {
+        ChunkPos chunkPos = chunk.first;
+
+        auto mesh = mChunkToMesh.find(chunkPos.packed);
+
+        // The chunk in the dimension has not had a mesh generated yet
+        [[unlikely]]
+        if (mesh == mChunkToMesh.end()) {
 //            // Dont generate too much at once. Minimap doesn't need a high priority
 //            if (chunksGeneratedThisFrame >= mMaxChunksToGeneratePerFrame) continue;
 //
 //            // Create a mesh for that chunk
 //            chunksGeneratedThisFrame += 1;
 //            UpdateChunk(chunkPos);
-//            continue;
-//        }
-//
-//        float xChunkTranslation = (((chunkPos.x * 16) - playerPos->x + mRenderDistance * 16)) * mUnitsPerBlock;
-//        float zChunkTranslation = (((chunkPos.z * 16) - playerPos->z + mRenderDistance * 16)) * mUnitsPerBlock;
-//
-//        xChunkTranslation += screenSize.x - (mMinimapSize + mMinimapEdgeBorder);
-//        zChunkTranslation += mMinimapEdgeBorder;
-//
-//        // Chunks are drawn from the top left corner of the screen, so translate them to their intended position on screen
-//        // Then undo that translation as not to screw up minecrafts rendering, or rendering of other minimap chunks
-//        matrix.translate(xChunkTranslation, zChunkTranslation, 0.0f);
-//        mesh->second.renderMesh(*uiCtx->mScreenContext, *mMinimapMaterial);
-//        matrix = originalMatrix;
-//    }
+            continue;
+        }
+
+        float xChunkTranslation = (((chunkPos.x * 16) - playerPos->x + mRenderDistance * 16)) * mUnitsPerBlock;
+        float zChunkTranslation = (((chunkPos.z * 16) - playerPos->z + mRenderDistance * 16)) * mUnitsPerBlock;
+
+        xChunkTranslation += screenSize.x - (mMinimapSize + mMinimapEdgeBorder);
+        zChunkTranslation += mMinimapEdgeBorder;
+
+        // Chunks are drawn from the top left corner of the screen, so translate them to their intended position on screen
+        // Then undo that translation as not to screw up minecrafts rendering, or rendering of other minimap chunks
+        matrix.translate(xChunkTranslation, zChunkTranslation, 0.0f);
+        mesh->second.renderMesh(*uiCtx->mScreenContext, *mMinimapMaterial);
+        matrix = originalMatrix;
+    }
 
     // Remove our clipping rectangle for the minimap renderer
     uiCtx->restoreSavedClippingRectangle();
