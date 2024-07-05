@@ -22,7 +22,7 @@ void OnRenderUi(ScreenView* screenView, MinecraftUIRenderContext* uiRenderContex
     {
         [[unlikely]]
         if (!hasAddedRegionListener) {
-            client->getRegion()->addListener(*minimap);
+            client->getRegion()->mLevel->add_listener(*minimap);
             hasAddedRegionListener = true;
         }
 
