@@ -3,7 +3,7 @@
 > [!NOTE]
 > Atlas is still work in progress
 
-Atlas is a Minecraft Bedrock Mod for `1.20.72`.
+Atlas is a Minecraft Bedrock Mod for `1.21.0.3`.
 It is written in C++ and uses the Amethyst Api.
 
 Atlas adds a minimap to the Minecraft Bedrock experience.
