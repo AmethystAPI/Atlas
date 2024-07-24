@@ -10,11 +10,12 @@
 #include <minecraft/src/common/world/level/LevelListener.hpp>
 #include <minecraft/src/common/world/level/block/Block.hpp>
 #include <unordered_map>
+#include <unordered_set>
 
 class Minimap : public LevelListener {
 private:
     std::unordered_map<uint64_t, mce::Mesh> mChunkToMesh;
-    std::vector<ChunkPos> mChunkDrawDeferList;
+    std::unordered_set<ChunkPos> mChunkDrawDeferList;
 
     Tessellator& mTes;
 
@@ -24,14 +25,12 @@ private:
     Amethyst::NinesliceHelper mOutlineNineslice;
 
     uint8_t mLastDimID;
-    int mFramesSinceLastCull;
 
 public:
-    int mRenderDistance = 32;
+    int mRenderDistance = 12;
     int mMaxChunksToGeneratePerFrame = 16;
     float mMinimapSize;
     float mMinimapEdgeBorder;
-    float mUnitsPerBlock;
 
 public:
     Minimap(MinecraftUIRenderContext& context);
@@ -40,8 +39,7 @@ public:
     void Render(MinecraftUIRenderContext& uiCtx);
     void DeleteAllChunkMeshes();
 
-    //virtual void onBlockChanged(BlockSource& source, const BlockPos& pos, uint32_t layer, const Block& block, const Block& oldBlock, int updateFlags, const ActorBlockSyncMessage* syncMsg, BlockChangedEventTarget eventTarget, Actor* blockChangeSource) override;
-
+    virtual void onBlockChanged(BlockSource& source, const BlockPos& pos, uint32_t layer, const Block& block, const Block& oldBlock, int updateFlags, const ActorBlockSyncMessage* syncMsg, BlockChangedEventTarget eventTarget, Actor* blockChangeSource) override;
     virtual void onChunkUnloaded(LevelChunk& lc) override;
     virtual void onSubChunkLoaded(class ChunkSource& source, class LevelChunk& lc, short, bool) override;
 

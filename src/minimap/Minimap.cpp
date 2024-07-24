@@ -22,7 +22,6 @@ Minimap::Minimap(MinecraftUIRenderContext& ctx)
 
     mMinimapEdgeBorder = 3.0f;
     mMinimapSize = 128.0f;
-    mUnitsPerBlock = mMinimapSize / (mRenderDistance * 16 * 2);
 
     /* Load any necessary textures. */
     mMinimapOutline = ctx.getTexture("textures/ui/minimap_border", true);
@@ -97,12 +96,12 @@ void Minimap::TessellateChunkMesh(BlockSource& region, const ChunkPos& chunkPos)
             mTes.color(color.r, color.g, color.b, color.a);
 
             for (auto& vert : vertexes) {
-                Vec3 scaledVert = vert * Vec3(mUnitsPerBlock, mUnitsPerBlock, 1.0f);
+                Vec3 scaledVert = vert;
 
                 if (chunkX == 15 && vert.x == 1.0f) scaledVert = scaledVert + Vec3(0.1f, 0.0f, 0.0f);
                 if (chunkZ == 15 && vert.y == 1.0f) scaledVert = scaledVert + Vec3(0.0f, 0.1f, 0.0f);
 
-                Vec3 transformedPos = Vec3(chunkX * mUnitsPerBlock, chunkZ * mUnitsPerBlock, 0.0f) + scaledVert;
+                Vec3 transformedPos = Vec3((float)chunkX, (float)chunkZ, 0.0f) + scaledVert;
 
                 mTes.vertex(transformedPos);
             }
@@ -160,6 +159,8 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
         }
     }
 
+    float unitsPerBlock = mMinimapSize / (mRenderDistance * 16 * 2);
+
     // Render each chunk in the players minimap render distance.
     for (auto& chunkPos : mChunksToRender)
     {
@@ -167,15 +168,18 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
         auto mesh = mChunkToMesh.find(chunkPos.packed);
         if (mesh == mChunkToMesh.end()) continue;
 
-        float xChunkTranslation = (((chunkPos.x * 16) - playerPos->x + mRenderDistance * 16)) * mUnitsPerBlock;
-        float zChunkTranslation = (((chunkPos.z * 16) - playerPos->z + mRenderDistance * 16)) * mUnitsPerBlock;
+        float xChunkTranslation = (((chunkPos.x * 16) - playerPos->x + mRenderDistance * 16)) * unitsPerBlock;
+        float zChunkTranslation = (((chunkPos.z * 16) - playerPos->z + mRenderDistance * 16)) * unitsPerBlock;
 
         xChunkTranslation += screenSize.x - (mMinimapSize + mMinimapEdgeBorder);
         zChunkTranslation += mMinimapEdgeBorder;
 
         // Chunks are drawn from the top left corner of the screen, so translate them to their intended position on screen
         // Then undo that translation as not to screw up minecrafts rendering, or rendering of other minimap chunks
+        
+
         matrix.translate(xChunkTranslation, zChunkTranslation, 0.0f);
+        matrix.scale(unitsPerBlock, unitsPerBlock, unitsPerBlock);
         mesh->second.renderMesh(*ctx.mScreenContext, *mMinimapMaterial);
         matrix = originalMatrix;
     }
@@ -239,12 +243,18 @@ void Minimap::DeleteAllChunkMeshes()
 //    TessellateChunkMesh(source, chunkPos);
 //}
 
-void Minimap::onChunkUnloaded(LevelChunk& lc) 
+void Minimap::onBlockChanged(BlockSource& source, const BlockPos& pos, uint32_t layer, const Block& block, const Block& oldBlock, int updateFlags, const ActorBlockSyncMessage* syncMsg, BlockChangedEventTarget eventTarget, Actor* blockChangeSource)
+{
+    ChunkPos chunkPos(pos.x / 16, pos.z / 16);
+    mChunkDrawDeferList.insert(chunkPos);
+}
+
+void Minimap::onChunkUnloaded(LevelChunk& lc)
 {
     CullChunk(lc.mPosition);
 }
 
 void Minimap::onSubChunkLoaded(ChunkSource& source, LevelChunk& lc, short, bool)
 {
-    mChunkDrawDeferList.push_back(lc.mPosition);
+    mChunkDrawDeferList.insert(lc.mPosition);
 }
