@@ -14,7 +14,7 @@
 
 class Minimap : public LevelListener {
 private:
-    std::unordered_map<uint64_t, mce::Mesh> mChunkToMesh;
+    std::unordered_map<ChunkPos, mce::Mesh> mChunkToMesh;
     std::unordered_set<ChunkPos> mChunkDrawDeferList;
 
     Tessellator& mTes;
@@ -46,5 +46,5 @@ public:
 
 private:
     mce::Color GetColor(BlockSource& region, int xPos, int zPos) const;
-    void CullChunk(ChunkPos pos);
+    void CullChunk(const ChunkPos& pos);
 };

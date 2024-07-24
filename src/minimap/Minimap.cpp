@@ -8,7 +8,7 @@
 #include <minecraft/src-client/common/client/gui/gui/GuiData.hpp>
 #include <amethyst/runtime/ModContext.hpp>
 
-Vec3 vertexes[4] = {
+Vec3 quadVerts[4] = {
     Vec3(0.0f, 0.0f, 0.0f),
     Vec3(0.0f, 1.0f, 0.0f),
     Vec3(1.0f, 1.0f, 0.0f),
@@ -18,6 +18,7 @@ Vec3 vertexes[4] = {
 Minimap::Minimap(MinecraftUIRenderContext& ctx)
     : mOutlineNineslice(30, 30, 10, 10), mTes(ctx.mScreenContext->tessellator)
 {
+    Log::Info("Minimap::Minimap");
     mMinimapMaterial = reinterpret_cast<mce::MaterialPtr*>(SlideAddress(0x59BD7E0));
 
     mMinimapEdgeBorder = 3.0f;
@@ -95,7 +96,7 @@ void Minimap::TessellateChunkMesh(BlockSource& region, const ChunkPos& chunkPos)
 
             mTes.color(color.r, color.g, color.b, color.a);
 
-            for (auto& vert : vertexes) {
+            for (auto& vert : quadVerts) {
                 Vec3 scaledVert = vert;
 
                 if (chunkX == 15 && vert.x == 1.0f) scaledVert = scaledVert + Vec3(0.1f, 0.0f, 0.0f);
@@ -109,7 +110,7 @@ void Minimap::TessellateChunkMesh(BlockSource& region, const ChunkPos& chunkPos)
     }
 
     // Save the chunk to the cache.
-    mChunkToMesh[chunkPos.packed] = mTes.end(0, "Untagged Minimap Chunk", 0);
+    mChunkToMesh[chunkPos] = mTes.end(0, "Untagged Minimap Chunk", 0);
     mTes.clear();
 }
 
@@ -125,6 +126,7 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
         TessellateChunkMesh(*region, chunkPos);
     }
 
+    //Log::Info("mChunkDrawDeferList.size() == {}", mChunkDrawDeferList.size());
     mChunkDrawDeferList.clear();
 
     uint8_t dimId = region->getDimensionConst().mId.runtimeID;
@@ -152,44 +154,44 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
 
     std::vector<ChunkPos> mChunksToRender;
 
+    float unitsPerBlock = mMinimapSize / (mRenderDistance * 16 * 2);
+
+    /*uint64_t vertexCount = 0;
+    int chunksCount = 0;*/
+
     for (int x = -mRenderDistance - 1; x <= mRenderDistance + 1; x++) {
         for (int z = -mRenderDistance - 1; z <= mRenderDistance + 1; z++) {
             ChunkPos chunkPos(x + playerChunkPos.x, z + playerChunkPos.z);
-            mChunksToRender.push_back(chunkPos);
+
+            // Attempt to find a mesh for this chunk
+            auto mesh = mChunkToMesh.find(chunkPos);
+            if (mesh == mChunkToMesh.end()) continue;
+
+            float xChunkTranslation = (((chunkPos.x * 16) - playerPos->x + mRenderDistance * 16)) * unitsPerBlock;
+            float zChunkTranslation = (((chunkPos.z * 16) - playerPos->z + mRenderDistance * 16)) * unitsPerBlock;
+
+            xChunkTranslation += screenSize.x - (mMinimapSize + mMinimapEdgeBorder);
+            zChunkTranslation += mMinimapEdgeBorder;
+
+            /*vertexCount += mesh->second.mMeshData.mPositions.size();
+            chunksCount += 1;*/
+
+            // Chunks are drawn from the top left corner of the screen, so translate them to their intended position on screen
+            // Then undo that translation as not to screw up minecrafts rendering, or rendering of other minimap chunks
+            matrix.translate(xChunkTranslation, zChunkTranslation, 0.0f);
+            matrix.scale(unitsPerBlock, unitsPerBlock, unitsPerBlock);
+            mesh->second.renderMesh(*ctx.mScreenContext, *mMinimapMaterial);
+            matrix = originalMatrix;
         }
     }
 
-    float unitsPerBlock = mMinimapSize / (mRenderDistance * 16 * 2);
-
-    // Render each chunk in the players minimap render distance.
-    for (auto& chunkPos : mChunksToRender)
-    {
-        // Attempt to find a mesh for this chunk
-        auto mesh = mChunkToMesh.find(chunkPos.packed);
-        if (mesh == mChunkToMesh.end()) continue;
-
-        float xChunkTranslation = (((chunkPos.x * 16) - playerPos->x + mRenderDistance * 16)) * unitsPerBlock;
-        float zChunkTranslation = (((chunkPos.z * 16) - playerPos->z + mRenderDistance * 16)) * unitsPerBlock;
-
-        xChunkTranslation += screenSize.x - (mMinimapSize + mMinimapEdgeBorder);
-        zChunkTranslation += mMinimapEdgeBorder;
-
-        // Chunks are drawn from the top left corner of the screen, so translate them to their intended position on screen
-        // Then undo that translation as not to screw up minecrafts rendering, or rendering of other minimap chunks
-        
-
-        matrix.translate(xChunkTranslation, zChunkTranslation, 0.0f);
-        matrix.scale(unitsPerBlock, unitsPerBlock, unitsPerBlock);
-        mesh->second.renderMesh(*ctx.mScreenContext, *mMinimapMaterial);
-        matrix = originalMatrix;
-    }
+    //Log::Info("Vertex count: {}, drawing {} chunks. average: {}", vertexCount, chunksCount, vertexCount / (float)vertexCount);
 
     // Remove our clipping rectangle for the minimap renderer
     ctx.restoreSavedClippingRectangle();
 
     // Draw minimap border
     // The stenciling in MinecraftUIRenderContext has an off by 1 error
-    // Also crashes on world leave
     rect._x0 -= 1;
     rect._y0 -= 1;
 
@@ -205,7 +207,7 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
 
     mTes.begin(mce::PrimitiveMode::QuadList, 4);
 
-    for (auto& vert : vertexes) {
+    for (auto& vert : quadVerts) {
         float size = 10;
 
         Vec3 transformedVert = vert * Vec3(size, size, 1.0f);
@@ -227,21 +229,14 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
     mesh.renderMesh(*ctx.mScreenContext, *mMinimapMaterial, mMinimapPosIcon);
 }
 
-void Minimap::CullChunk(ChunkPos pos) {
-    this->mChunkToMesh.erase(pos.packed);
+void Minimap::CullChunk(const ChunkPos& pos) {
+    this->mChunkToMesh.erase(pos);
 }
 
 void Minimap::DeleteAllChunkMeshes()
 {
     mChunkToMesh.clear();
 }
-
-//void Minimap::onBlockChanged(BlockSource& source, const BlockPos& pos, uint32_t layer, const Block& block, const Block& oldBlock, int updateFlags, const ActorBlockSyncMessage* syncMsg, BlockChangedEventTarget eventTarget, Actor* blockChangeSource)
-//{
-//    ChunkPos chunkPos(pos.x / 16, pos.z / 16);
-//    Log::Info("[CHA] POS: ({}; {}) {}", chunkPos.x, chunkPos.z, (int)lc.mLoadState);
-//    TessellateChunkMesh(source, chunkPos);
-//}
 
 void Minimap::onBlockChanged(BlockSource& source, const BlockPos& pos, uint32_t layer, const Block& block, const Block& oldBlock, int updateFlags, const ActorBlockSyncMessage* syncMsg, BlockChangedEventTarget eventTarget, Actor* blockChangeSource)
 {
