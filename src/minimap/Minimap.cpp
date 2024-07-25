@@ -18,6 +18,7 @@ Vec3 unitQuad[4] = {
 Minimap::Minimap(MinecraftUIRenderContext& ctx)
     : mOutlineNineslice(30, 30, 10, 10), mTes(ctx.mScreenContext->tessellator)
 {
+    Log::Info("Minimap::Minimap");
     mMinimapMaterial = reinterpret_cast<mce::MaterialPtr*>(SlideAddress(0x59BD7E0));
 
     mMinimapEdgeBorder = 3.0f;
@@ -158,7 +159,7 @@ void Minimap::TessellateChunkMesh(BlockSource& region, const ChunkPos& chunkPos)
     Log::Info("avg vert count {}", vertexCount / (float)chunkCount);
 
     // Save the chunk to the cache.
-    mChunkToMesh[chunkPos.packed] = mTes.end(0, "Untagged Minimap Chunk", 0);
+    mChunkToMesh[chunkPos] = mTes.end(0, "Untagged Minimap Chunk", 0);
     mTes.clear();
 }
 
@@ -175,6 +176,7 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
         TessellateChunkMesh(*region, unpacked);
     }
 
+    //Log::Info("mChunkDrawDeferList.size() == {}", mChunkDrawDeferList.size());
     mChunkDrawDeferList.clear();
 
     uint8_t dimId = region->getDimensionConst().mId.runtimeID;
@@ -202,6 +204,11 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
 
     float unitsPerBlock = mMinimapSize / (mRenderDistance * 16 * 2);
 
+    float unitsPerBlock = mMinimapSize / (mRenderDistance * 16 * 2);
+
+    /*uint64_t vertexCount = 0;
+    int chunksCount = 0;*/
+
     for (int x = -mRenderDistance - 1; x <= mRenderDistance + 1; x++) {
         for (int z = -mRenderDistance - 1; z <= mRenderDistance + 1; z++) {
             ChunkPos chunkPos(x + playerChunkPos.x, z + playerChunkPos.z);
@@ -226,12 +233,13 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
         }
     }
 
+    //Log::Info("Vertex count: {}, drawing {} chunks. average: {}", vertexCount, chunksCount, vertexCount / (float)vertexCount);
+
     // Remove our clipping rectangle for the minimap renderer
     ctx.restoreSavedClippingRectangle();
 
     // Draw minimap border
     // The stenciling in MinecraftUIRenderContext has an off by 1 error
-    // Also crashes on world leave
     rect._x0 -= 1;
     rect._y0 -= 1;
 
@@ -269,8 +277,8 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
     mesh.renderMesh(*ctx.mScreenContext, *mMinimapMaterial, mMinimapPosIcon);
 }
 
-void Minimap::CullChunk(ChunkPos pos) {
-    this->mChunkToMesh.erase(pos.packed);
+void Minimap::CullChunk(const ChunkPos& pos) {
+    this->mChunkToMesh.erase(pos);
 }
 
 void Minimap::DeleteAllChunkMeshes()

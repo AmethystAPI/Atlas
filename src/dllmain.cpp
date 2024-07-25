@@ -8,6 +8,7 @@
 #include <minecraft/src-client/common/client/gui/gui/VisualTree.hpp>
 #include <minecraft/src-client/common/client/gui/gui/UIControl.hpp>
 #include <amethyst/runtime/events/InputEvents.hpp>
+#include <chrono>
 
 std::shared_ptr<Minimap> minimap;
 bool hasAddedRegionListener = false;
@@ -36,7 +37,12 @@ void AfterRenderUi(AfterRenderUIEvent& event)
             hasAddedRegionListener = true;
         }
 
+        //auto start = std::chrono::high_resolution_clock::now();
         minimap->Render(event.ctx);
+        //auto end = std::chrono::high_resolution_clock::now();
+
+        //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        //Log::Info("Minimap::Render took: {}ms", duration.count());
     }
 }
 

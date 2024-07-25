@@ -46,5 +46,5 @@ public:
 
 private:
     mce::Color GetColor(BlockSource& region, int xPos, int zPos) const;
-    void CullChunk(ChunkPos pos);
+    void CullChunk(const ChunkPos& pos);
 };
