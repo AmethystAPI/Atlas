@@ -122,7 +122,8 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
     if (region == nullptr) return;
 
     for (auto& chunkPos : mChunkDrawDeferList) {
-        TessellateChunkMesh(*region, chunkPos);
+        ChunkPos unpacked(chunkPos);
+        TessellateChunkMesh(*region, unpacked);
     }
 
     mChunkDrawDeferList.clear();
@@ -246,7 +247,7 @@ void Minimap::DeleteAllChunkMeshes()
 void Minimap::onBlockChanged(BlockSource& source, const BlockPos& pos, uint32_t layer, const Block& block, const Block& oldBlock, int updateFlags, const ActorBlockSyncMessage* syncMsg, BlockChangedEventTarget eventTarget, Actor* blockChangeSource)
 {
     ChunkPos chunkPos(pos.x / 16, pos.z / 16);
-    mChunkDrawDeferList.insert(chunkPos);
+    mChunkDrawDeferList.insert(chunkPos.packed);
 }
 
 void Minimap::onChunkUnloaded(LevelChunk& lc)
@@ -256,5 +257,5 @@ void Minimap::onChunkUnloaded(LevelChunk& lc)
 
 void Minimap::onSubChunkLoaded(ChunkSource& source, LevelChunk& lc, short, bool)
 {
-    mChunkDrawDeferList.insert(lc.mPosition);
+    mChunkDrawDeferList.insert(lc.mPosition.packed);
 }
