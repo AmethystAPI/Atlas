@@ -8,7 +8,7 @@
 #include <minecraft/src-client/common/client/gui/gui/GuiData.hpp>
 #include <amethyst/runtime/ModContext.hpp>
 
-Vec3 quadVerts[4] = {
+Vec3 unitQuad[4] = {
     Vec3(0.0f, 0.0f, 0.0f),
     Vec3(0.0f, 1.0f, 0.0f),
     Vec3(1.0f, 1.0f, 0.0f),
@@ -82,6 +82,9 @@ mce::Color Minimap::GetColor(BlockSource& region, int xPos, int zPos) const
     return {0, 0, 0, 0xFF};
 }
 
+uint64_t vertexCount = 0;
+uint64_t chunkCount = 0;
+
 void Minimap::TessellateChunkMesh(BlockSource& region, const ChunkPos& chunkPos)
 {
     mTes.begin(mce::PrimitiveMode::QuadList, 16 * 16);
@@ -89,25 +92,71 @@ void Minimap::TessellateChunkMesh(BlockSource& region, const ChunkPos& chunkPos)
     int worldX = chunkPos.x * 16;
     int worldZ = chunkPos.z * 16;
 
-    for (int chunkX = 0; chunkX < 16; chunkX++) {
-        for (int chunkZ = 0; chunkZ < 16; chunkZ++) {
-            // Sample the colour of the current block
-            auto color = GetColor(region, worldX + chunkX, worldZ + chunkZ);
+    // Pre-sample block colours
+    std::array<std::array<uint32_t, 16>, 16> packedColorData{};
 
-            mTes.color(color.r, color.g, color.b, color.a);
+    for (int x = 0; x < 16; x++) {
+        for (int z = 0; z < 16; z++) {
+            packedColorData[x][z] = GetColor(region, worldX + x, worldZ + z).As32();
+        }
+    }
 
-            for (auto& vert : quadVerts) {
-                Vec3 scaledVert = vert;
+    // Greedy meshing
+    std::vector<std::vector<bool>> visited(16, std::vector<bool>(16, false));
 
-                if (chunkX == 15 && vert.x == 1.0f) scaledVert = scaledVert + Vec3(0.1f, 0.0f, 0.0f);
-                if (chunkZ == 15 && vert.y == 1.0f) scaledVert = scaledVert + Vec3(0.0f, 0.1f, 0.0f);
+    for (int x = 0; x < 16; x++) {
+        for (int z = 0; z < 16; z++) {
+            if (visited[x][z]) continue;
 
-                Vec3 transformedPos = Vec3((float)chunkX, (float)chunkZ, 0.0f) + scaledVert;
+            uint32_t color = packedColorData[x][z];
+            int width = 1, height = 1;
 
+            // Determine the width
+            for (int wx = x + 1; wx < 16 && packedColorData[wx][z] == color && !visited[wx][z]; wx++) {
+                width++;
+            }
+
+            // Try expand height
+            bool canExpand = true;
+            for (int hz = z + 1; hz < 16 && canExpand; hz++) {
+                for (int wx = x; wx < x + width; wx++) {
+                    if (packedColorData[wx][hz] != color || visited[wx][hz]) {
+                        canExpand = false;
+                        break;
+                    }
+                }
+
+                if (canExpand) height++;
+            }
+
+            // Mark positions as visited
+            for (int wx = x; wx < x + width; wx++) {
+                for (int hz = z; hz < z + height; hz++) {
+                    visited[wx][hz] = true;
+                }
+            }
+
+            // Draw the quad
+            mTes.color(color);
+
+            Vec3 verts[4] = {
+                Vec3((float)x, (float)z, 0.0f),
+                Vec3((float)x, (float)(z + height), 0.0f),
+                Vec3((float)(x + width), (float)(z + height), 0.0f),
+                Vec3((float)(x + width), (float)z, 0.0f),
+            };
+
+            for (auto& vert : verts) {
+                Vec3 transformedPos = vert;
                 mTes.vertex(transformedPos);
+                vertexCount += 1;
             }
         }
     }
+
+    chunkCount += 1;
+
+    Log::Info("avg vert count {}", vertexCount / (float)chunkCount);
 
     // Save the chunk to the cache.
     mChunkToMesh[chunkPos] = mTes.end(0, "Untagged Minimap Chunk", 0);
@@ -123,7 +172,8 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
     if (region == nullptr) return;
 
     for (auto& chunkPos : mChunkDrawDeferList) {
-        TessellateChunkMesh(*region, chunkPos);
+        ChunkPos unpacked(chunkPos);
+        TessellateChunkMesh(*region, unpacked);
     }
 
     //Log::Info("mChunkDrawDeferList.size() == {}", mChunkDrawDeferList.size());
@@ -152,7 +202,7 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
     Vec3* playerPos = ctx.mClient->getLocalPlayer()->getPosition();
     ChunkPos playerChunkPos = ChunkPos((int)playerPos->x / 16, (int)playerPos->z / 16);
 
-    std::vector<ChunkPos> mChunksToRender;
+    float unitsPerBlock = mMinimapSize / (mRenderDistance * 16 * 2);
 
     float unitsPerBlock = mMinimapSize / (mRenderDistance * 16 * 2);
 
@@ -164,7 +214,7 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
             ChunkPos chunkPos(x + playerChunkPos.x, z + playerChunkPos.z);
 
             // Attempt to find a mesh for this chunk
-            auto mesh = mChunkToMesh.find(chunkPos);
+            auto mesh = mChunkToMesh.find(chunkPos.packed);
             if (mesh == mChunkToMesh.end()) continue;
 
             float xChunkTranslation = (((chunkPos.x * 16) - playerPos->x + mRenderDistance * 16)) * unitsPerBlock;
@@ -173,11 +223,9 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
             xChunkTranslation += screenSize.x - (mMinimapSize + mMinimapEdgeBorder);
             zChunkTranslation += mMinimapEdgeBorder;
 
-            /*vertexCount += mesh->second.mMeshData.mPositions.size();
-            chunksCount += 1;*/
-
             // Chunks are drawn from the top left corner of the screen, so translate them to their intended position on screen
             // Then undo that translation as not to screw up minecrafts rendering, or rendering of other minimap chunks
+
             matrix.translate(xChunkTranslation, zChunkTranslation, 0.0f);
             matrix.scale(unitsPerBlock, unitsPerBlock, unitsPerBlock);
             mesh->second.renderMesh(*ctx.mScreenContext, *mMinimapMaterial);
@@ -207,7 +255,7 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
 
     mTes.begin(mce::PrimitiveMode::QuadList, 4);
 
-    for (auto& vert : quadVerts) {
+    for (auto& vert : unitQuad) {
         float size = 10;
 
         Vec3 transformedVert = vert * Vec3(size, size, 1.0f);
@@ -241,7 +289,7 @@ void Minimap::DeleteAllChunkMeshes()
 void Minimap::onBlockChanged(BlockSource& source, const BlockPos& pos, uint32_t layer, const Block& block, const Block& oldBlock, int updateFlags, const ActorBlockSyncMessage* syncMsg, BlockChangedEventTarget eventTarget, Actor* blockChangeSource)
 {
     ChunkPos chunkPos(pos.x / 16, pos.z / 16);
-    mChunkDrawDeferList.insert(chunkPos);
+    mChunkDrawDeferList.insert(chunkPos.packed);
 }
 
 void Minimap::onChunkUnloaded(LevelChunk& lc)
@@ -251,5 +299,5 @@ void Minimap::onChunkUnloaded(LevelChunk& lc)
 
 void Minimap::onSubChunkLoaded(ChunkSource& source, LevelChunk& lc, short, bool)
 {
-    mChunkDrawDeferList.insert(lc.mPosition);
+    mChunkDrawDeferList.insert(lc.mPosition.packed);
 }
