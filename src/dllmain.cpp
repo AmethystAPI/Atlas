@@ -9,60 +9,40 @@
 #include <minecraft/src-client/common/client/gui/gui/UIControl.hpp>
 #include <amethyst/runtime/events/InputEvents.hpp>
 #include <chrono>
+#include <minecraft/src/common/Minecraft.hpp>
 
 std::shared_ptr<Minimap> minimap;
-bool hasAddedRegionListener = false;
+bool isInWorld = false;
 
 void AfterRenderUi(AfterRenderUIEvent& event)
 {
-    ClientInstance* client = event.ctx.mClient;
+    // Ensure the game is loaded and a minimap has been constructed
+    if (!minimap) return;
 
-    // Ensure the game is loaded.
-    if (event.ctx.mClient == nullptr || client->getRegion() == nullptr) return;
-
-    Tessellator* tes = &event.ctx.mScreenContext->tessellator;
-
-    // Ensure we have a minimap
-    [[unlikely]]
-    if (!minimap)
-    {
-        minimap = std::make_shared<Minimap>(event.ctx);
-    }
-
+    // Only render the UI on the "hud_screen" element.
     if (event.screen.visualTree->mRootControlName->mName == "hud_screen") 
     {
-        [[unlikely]]
-        if (!hasAddedRegionListener) {
-            client->getRegion()->mLevel->addListener(*minimap);
-            hasAddedRegionListener = true;
-        }
-
-        //auto start = std::chrono::high_resolution_clock::now();
         minimap->Render(event.ctx);
-        //auto end = std::chrono::high_resolution_clock::now();
-
-        //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        //Log::Info("Minimap::Render took: {}ms", duration.count());
     }
+}
+
+void DestroyMinimap() {
+    ClientInstance* client = Amethyst::GetContext().mClientInstance;
+    BlockSource* region = client->getRegion();
+
+    region->removeListener(*minimap);
+    minimap.reset();
 }
 
 void BeforeModShutdown(BeforeModShutdownEvent& event)
 {
-    if (minimap == nullptr) return;
-    
-    ClientInstance* client = Amethyst::GetContext().mClientInstance;
-
-    if (client != nullptr && client->getRegion() != nullptr) {
-        client->getRegion()->removeListener(*minimap);
-    }
-
-    minimap.reset();
+    DestroyMinimap();
 }
 
 void OnRequestLeaveGame(OnRequestLeaveGameEvent& event)
 {
-    minimap->DeleteAllChunkMeshes();
-    hasAddedRegionListener = false;
+    isInWorld = false;
+    DestroyMinimap();
 }
 
 void RegisterInputs(RegisterInputsEvent& event) {
@@ -71,6 +51,7 @@ void RegisterInputs(RegisterInputsEvent& event) {
 }
 
 void OnStartJoinGame(OnStartJoinGameEvent& event) {
+    isInWorld = true;
     auto& inputs = *Amethyst::GetContext().mInputManager;
 
     inputs.AddButtonDownHandler(
@@ -88,6 +69,15 @@ void OnStartJoinGame(OnStartJoinGameEvent& event) {
         false);
 }
 
+void OnLevelConstructed(OnLevelConstructedEvent& event)
+{
+    // Only use the client side level
+    if (!event.mLevel.isClientSide) return;
+
+    minimap = std::make_shared<Minimap>();
+    event.mLevel.addListener(*minimap);
+}
+
 ModFunction void Initialize(AmethystContext& ctx)
 {
     Amethyst::InitializeAmethystMod(ctx);
@@ -100,4 +90,5 @@ ModFunction void Initialize(AmethystContext& ctx)
     events.AddListener<AfterRenderUIEvent>(&AfterRenderUi);
     events.AddListener<RegisterInputsEvent>(&RegisterInputs);
     events.AddListener<OnStartJoinGameEvent>(&OnStartJoinGame);
+    events.AddListener<OnLevelConstructedEvent>(&OnLevelConstructed);
 } 

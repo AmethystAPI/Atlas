@@ -15,18 +15,21 @@ Vec3 unitQuad[4] = {
     Vec3(1.0f, 0.0f, 0.0f),
 };
 
-Minimap::Minimap(MinecraftUIRenderContext& ctx)
-    : mOutlineNineslice(30, 30, 10, 10), mTes(ctx.mScreenContext->tessellator)
+Minimap::Minimap()
+    : mOutlineNineslice(30, 30, 10, 10), mLastDimID(0)
 {
-    Log::Info("Minimap::Minimap");
     mMinimapMaterial = reinterpret_cast<mce::MaterialPtr*>(SlideAddress(0x59BD7E0));
 
     mMinimapEdgeBorder = 3.0f;
     mMinimapSize = 128.0f;
+}
 
+void Minimap::_LoadTextures(MinecraftUIRenderContext& ctx)
+{
     /* Load any necessary textures. */
     mMinimapOutline = ctx.getTexture("textures/ui/minimap_border", true);
     mMinimapPosIcon = ctx.getTexture("textures/ui/minimap_pos_icon", true);
+    mHasLoadedTextures = true;
 }
 
 int countBlockNeighbors(const BlockSource& region, int xPos, int yPos, int zPos)
@@ -82,11 +85,16 @@ mce::Color Minimap::GetColor(BlockSource& region, int xPos, int zPos) const
     return {0, 0, 0, 0xFF};
 }
 
+#ifdef VERTEX_STATS
 uint64_t vertexCount = 0;
 uint64_t chunkCount = 0;
+#endif
 
-void Minimap::TessellateChunkMesh(BlockSource& region, const ChunkPos& chunkPos)
+void Minimap::TessellateChunkMesh(Tessellator& mTes, BlockSource& region, const ChunkPos& chunkPos)
 {
+    LevelChunk* levelChunk = region.getChunk(chunkPos);
+    if (levelChunk == nullptr) return;
+
     mTes.begin(mce::PrimitiveMode::QuadList, 16 * 16);
 
     int worldX = chunkPos.x * 16;
@@ -149,17 +157,21 @@ void Minimap::TessellateChunkMesh(BlockSource& region, const ChunkPos& chunkPos)
             for (auto& vert : verts) {
                 Vec3 transformedPos = vert;
                 mTes.vertex(transformedPos);
+
+                #ifdef VERTEX_STATS
                 vertexCount += 1;
+                #endif
             }
         }
     }
 
+    #ifdef VERTEX_STATS
     chunkCount += 1;
-
     Log::Info("avg vert count {}", vertexCount / (float)chunkCount);
+    #endif
 
     // Save the chunk to the cache.
-    mChunkToMesh[chunkPos] = mTes.end(0, "Untagged Minimap Chunk", 0);
+    mChunkToMesh[chunkPos.packed] = mTes.end(0, "Untagged Minimap Chunk", 0);
     mTes.clear();
 }
 
@@ -167,16 +179,20 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
 {
     ClientInstance& client = *Amethyst::GetContext().mClientInstance;
     BlockSource* region = client.getRegion();
+    Tessellator& mTes = ctx.mScreenContext->tessellator;
+
+    if (!mHasLoadedTextures) {
+        _LoadTextures(ctx);
+    }
 
     // Game is still loading...
     if (region == nullptr) return;
 
     for (auto& chunkPos : mChunkDrawDeferList) {
         ChunkPos unpacked(chunkPos);
-        TessellateChunkMesh(*region, unpacked);
+        TessellateChunkMesh(mTes, *region, unpacked);
     }
 
-    //Log::Info("mChunkDrawDeferList.size() == {}", mChunkDrawDeferList.size());
     mChunkDrawDeferList.clear();
 
     uint8_t dimId = region->getDimensionConst().mId.runtimeID;
@@ -196,6 +212,9 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
     RectangleArea rect{ screenSize.x - (mMinimapSize + mMinimapEdgeBorder), screenSize.x - mMinimapEdgeBorder, mMinimapEdgeBorder, mMinimapEdgeBorder + mMinimapSize };
     ctx.setClippingRectangle(rect);
 
+    // Draw the black background
+    ctx.fillRectangle(rect, mce::Color::BLACK, 1.0);
+
     Matrix& matrix = ctx.mScreenContext->camera->worldMatrixStack.stack.top();
     Matrix originalMatrix = matrix;
 
@@ -203,11 +222,6 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
     ChunkPos playerChunkPos = ChunkPos((int)playerPos->x / 16, (int)playerPos->z / 16);
 
     float unitsPerBlock = mMinimapSize / (mRenderDistance * 16 * 2);
-
-    float unitsPerBlock = mMinimapSize / (mRenderDistance * 16 * 2);
-
-    /*uint64_t vertexCount = 0;
-    int chunksCount = 0;*/
 
     for (int x = -mRenderDistance - 1; x <= mRenderDistance + 1; x++) {
         for (int z = -mRenderDistance - 1; z <= mRenderDistance + 1; z++) {
@@ -278,7 +292,7 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
 }
 
 void Minimap::CullChunk(const ChunkPos& pos) {
-    this->mChunkToMesh.erase(pos);
+    this->mChunkToMesh.erase(pos.packed);
 }
 
 void Minimap::DeleteAllChunkMeshes()
@@ -298,6 +312,12 @@ void Minimap::onChunkUnloaded(LevelChunk& lc)
 }
 
 void Minimap::onSubChunkLoaded(ChunkSource& source, LevelChunk& lc, short, bool)
+{
+    mChunkDrawDeferList.insert(lc.mPosition.packed);
+}
+
+// Some server softwares don't support sending in SubChunks, so this fixes the edge case where they send full chunks at once.
+void Minimap::onChunkLoaded(ChunkSource& source, LevelChunk& lc)
 {
     mChunkDrawDeferList.insert(lc.mPosition.packed);
 }
