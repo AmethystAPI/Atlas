@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 # Mod Options
 project(Atlas CXX ASM_NASM)
-set(MOD_VERSION "1.0.3")
+set(MOD_VERSION "1.0.4")
 set(MOD_AUTHOR "Adrian8115, FrederoxDev, OuterCloud")
 
 # Amethyst Minecraft Folder
