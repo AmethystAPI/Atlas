@@ -1,12 +1,12 @@
 #include "Minimap.h"
-#include <minecraft/src/common/world/level/dimension/Dimension.hpp>
-#include <minecraft/src/common/world/level/block/BlockLegacy.hpp>
-#include <minecraft/src/common/world/level/BlockSource.hpp>
-#include <minecraft/src-client/common/client/renderer/Tessellator.hpp>
-#include <minecraft/src-client/common/client/game/ClientInstance.hpp>
-#include <minecraft/src-client/common/client/player/LocalPlayer.hpp>
-#include <minecraft/src-client/common/client/gui/gui/GuiData.hpp>
 #include <amethyst/runtime/ModContext.hpp>
+#include <minecraft/src-client/common/client/game/ClientInstance.hpp>
+#include <minecraft/src-client/common/client/gui/gui/GuiData.hpp>
+#include <minecraft/src-client/common/client/player/LocalPlayer.hpp>
+#include <minecraft/src-client/common/client/renderer/Tessellator.hpp>
+#include <minecraft/src/common/world/level/BlockSource.hpp>
+#include <minecraft/src/common/world/level/block/BlockLegacy.hpp>
+#include <minecraft/src/common/world/level/dimension/Dimension.hpp>
 
 extern std::shared_ptr<Minimap> minimap;
 
@@ -160,17 +160,17 @@ void Minimap::TessellateChunkMesh(Tessellator& mTes, BlockSource& region, const 
                 Vec3 transformedPos = vert;
                 mTes.vertex(transformedPos);
 
-                #ifdef VERTEX_STATS
+#ifdef VERTEX_STATS
                 vertexCount += 1;
-                #endif
+#endif
             }
         }
     }
 
-    #ifdef VERTEX_STATS
+#ifdef VERTEX_STATS
     chunkCount += 1;
     Log::Info("avg vert count {}", vertexCount / (float)chunkCount);
-    #endif
+#endif
 
     // Save the chunk to the cache.
     mChunkToMesh[chunkPos.packed] = mTes.end(0, "Untagged Minimap Chunk", 0);
@@ -190,12 +190,24 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
     // Game is still loading...
     if (region == nullptr) return;
 
+    int chunksGeneratedThisFrame = 0;
+    std::vector<uint64_t> chunksDrawn;
+
     for (auto& chunkPos : mChunkDrawDeferList) {
+        if (chunksGeneratedThisFrame >= this->mMaxChunksToGeneratePerFrame) {
+            break;
+        }
+
         ChunkPos unpacked(chunkPos);
         TessellateChunkMesh(mTes, *region, unpacked);
+        chunksGeneratedThisFrame++;
+
+        chunksDrawn.push_back(chunkPos);
     }
 
-    mChunkDrawDeferList.clear();
+    for (auto& chunkPos : chunksDrawn) {
+        mChunkDrawDeferList.erase(chunkPos);
+    }
 
     uint8_t dimId = region->getDimensionConst().mId.runtimeID;
 
@@ -211,7 +223,7 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
     // Stencil out any chunk meshes that overlap the edges of the minimap.
     Vec2 screenSize = client.guiData->clientUIScreenSize;
 
-    RectangleArea rect{ screenSize.x - (mMinimapSize + mMinimapEdgeBorder), screenSize.x - mMinimapEdgeBorder, mMinimapEdgeBorder, mMinimapEdgeBorder + mMinimapSize };
+    RectangleArea rect{screenSize.x - (mMinimapSize + mMinimapEdgeBorder), screenSize.x - mMinimapEdgeBorder, mMinimapEdgeBorder, mMinimapEdgeBorder + mMinimapSize};
     ctx.setClippingRectangle(rect);
 
     // Draw the black background
@@ -249,7 +261,7 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
         }
     }
 
-    //Log::Info("Vertex count: {}, drawing {} chunks. average: {}", vertexCount, chunksCount, vertexCount / (float)vertexCount);
+    // Log::Info("Vertex count: {}, drawing {} chunks. average: {}", vertexCount, chunksCount, vertexCount / (float)vertexCount);
 
     // Remove our clipping rectangle for the minimap renderer
     ctx.restoreSavedClippingRectangle();
@@ -281,19 +293,19 @@ void Minimap::Render(MinecraftUIRenderContext& ctx)
 
         transformedVert.rotateAroundPointDegrees(
             Vec3(midX, midY, 0.0f),
-            Vec3(0.0f, 0.0f, headRot->y + 180.0f)
-        );
+            Vec3(0.0f, 0.0f, headRot->y + 180.0f));
 
         mTes.vertexUV(transformedVert, vert.x, vert.y);
     }
 
     mce::Mesh mesh = mTes.end(0, "player_pos_icon", 0);
     mTes.clear();
-   
+
     mesh.renderMesh(*ctx.mScreenContext, *mMinimapMaterial, mMinimapPosIcon);
 }
 
-void Minimap::CullChunk(const ChunkPos& pos) {
+void Minimap::CullChunk(const ChunkPos& pos)
+{
     this->mChunkToMesh.erase(pos.packed);
 }
 
