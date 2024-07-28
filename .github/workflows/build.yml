@@ -66,12 +66,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
 
-      - name: Build AmethystRuntime
+      - name: Build Mod
         run: |
           mkdir build
           cd build
           cmake -DCI_CD_BUILD=ON ..
-          msbuild Amethyst.sln
+          msbuild Atlas.sln
 
     #   - name: Package Build
     #     run: |
