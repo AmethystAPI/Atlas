@@ -33,7 +33,7 @@ jobs:
       - name: Extract and increment version number
         id: increment_version
         run: |
-          $filePath = "mod/CMakeLists.txt"
+          $filePath = "CMakeLists.txt"
           $version_line = Select-String -Path $filePath -Pattern 'set\(MOD_VERSION "(.*)"\)'
           if ($version_line -match 'set\(MOD_VERSION "(\d+)\.(\d+)\.(\d+)"\)') {
             $major = [int]$matches[1]
