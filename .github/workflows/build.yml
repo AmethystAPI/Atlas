@@ -3,6 +3,9 @@ name: Publish Version
 on:
   workflow_dispatch:
 
+env:
+    MOD_NAME: Atlas
+
 jobs:
   build:
     runs-on: windows-latest
@@ -71,38 +74,38 @@ jobs:
           mkdir build
           cd build
           cmake -DCI_CD_BUILD=ON ..
-          msbuild Atlas.sln
+          msbuild ${{ env.MOD_NAME }}.sln
 
-    #   - name: Package Build
-    #     run: |
-    #       $version = $env:NEW_VERSION
-    #       $sourcePath = "dist/AmethystRuntime@$version"
-    #       $zipPath = "dist/AmethystRuntime@$version.zip"
+      - name: Package Build
+        run: |
+          $version = $env:NEW_VERSION
+          $sourcePath = "dist/${{ env.MOD_NAME }}@$version"
+          $zipPath = "dist/${{ env.MOD_NAME }}@$version.zip"
 
-    #       if (-Not (Test-Path -Path $sourcePath)) {
-    #         Write-Error "Source path does not exist: $sourcePath"
-    #         exit 1
-    #       }
+          if (-Not (Test-Path -Path $sourcePath)) {
+            Write-Error "Source path does not exist: $sourcePath"
+            exit 1
+          }
 
-    #       Add-Type -AssemblyName System.IO.Compression.FileSystem
-    #       [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcePath, $zipPath)
-    #     shell: pwsh
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcePath, $zipPath)
+        shell: pwsh
 
-    #   - name: Create GitHub Release
-    #     id: create_release
-    #     run: |
-    #       $tag_name = "v$env:NEW_VERSION"
-    #       $release_name = "Release $env:NEW_VERSION"
-    #       gh release create $tag_name --title "$release_name" --notes "Automated release" --target main --repo FrederoxDev/Amethyst --draft=false --prerelease=false
-    #     shell: pwsh
-    #     env:
-    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create GitHub Release
+        id: create_release
+        run: |
+          $tag_name = "v$env:NEW_VERSION"
+          $release_name = "Release $env:NEW_VERSION"
+          gh release create $tag_name --title "$release_name" --notes "Automated release" --target main --repo ${{ github.repository }} --draft=false --prerelease=false
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    #   - name: Upload Release Asset
-    #     run: |
-    #       $asset_path = "dist/AmethystRuntime@$env:NEW_VERSION.zip"
-    #       $asset_label = "AmethystRuntime@$env:NEW_VERSION.zip"
-    #       gh release upload "v$env:NEW_VERSION" "$asset_path#$asset_label" --repo FrederoxDev/Amethyst
-    #     shell: pwsh
-    #     env:
-    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Release Asset
+        run: |
+          $asset_path = "dist/${{ env.MOD_NAME }}@$env:NEW_VERSION.zip"
+          $asset_label = "${{ env.MOD_NAME }}@$env:NEW_VERSION.zip"
+          gh release upload "v$env:NEW_VERSION" "$asset_path#$asset_label" --repo ${{ github.repository }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
