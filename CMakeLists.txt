@@ -6,11 +6,14 @@ set(MOD_VERSION "1.0.0")
 set(MOD_AUTHOR "Adrian8115, FrederoxDev, OuterCloud")
 
 # Amethyst Minecraft Folder
-set(AmethystFolder "$ENV{localappdata}/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/LocalState/games/com.mojang/amethyst/") 
-
-# Configure to build within the Amethyst Folder
-configure_file(mod.json.in "${AmethystFolder}/mods/${PROJECT_NAME}@${MOD_VERSION}/mod.json" @ONLY)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${AmethystFolder}/mods/${PROJECT_NAME}@${MOD_VERSION}")
+if (CI_CD_BUILD)
+        configure_file(mod.json.in "${CMAKE_SOURCE_DIR}/dist/${PROJECT_NAME}@${MOD_VERSION}/mod.json" @ONLY)
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_SOURCE_DIR}/dist/${PROJECT_NAME}@${MOD_VERSION}")
+else()
+        set(AmethystFolder "$ENV{localappdata}/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/LocalState/games/com.mojang/amethyst/") 
+        configure_file(mod.json.in "${AmethystFolder}/mods/${PROJECT_NAME}@${MOD_VERSION}/mod.json" @ONLY)
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${AmethystFolder}/mods/${PROJECT_NAME}@${MOD_VERSION}")
+endif()
 
 # Define only RelWithDebInfo as the available build configuration
 set(CMAKE_CXX_STANDARD 23)
@@ -50,4 +53,8 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 target_compile_definitions(${PROJECT_NAME} PUBLIC ENTT_PACKED_PAGE=128)
 
 # Get the AmethystAPI Lib
-add_subdirectory("$ENV{amethyst_src}/AmethystAPI" "build")
+if (CI_CD_BUILD)
+        add_subdirectory("${CMAKE_SOURCE_DIR}/amethyst/AmethystAPI" "build")
+else()
+        add_subdirectory("$ENV{amethyst_src}/AmethystAPI" "build")
+endif()
