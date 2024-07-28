@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 # Mod Options
 project(Atlas CXX ASM_NASM)
-set(MOD_VERSION "1.0.1")
+set(MOD_VERSION "1.0.0")
 set(MOD_AUTHOR "Adrian8115, FrederoxDev, OuterCloud")
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -12,10 +12,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /await")
 if (CI_CD_BUILD)
         configure_file(mod.json.in "${CMAKE_SOURCE_DIR}/dist/${PROJECT_NAME}@${MOD_VERSION}/mod.json" @ONLY)
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_SOURCE_DIR}/dist/${PROJECT_NAME}@${MOD_VERSION}")
+        set(AMETHYST_SRC "${CMAKE_SOURCE_DIR}/amethyst")
 else()
         set(AmethystFolder "$ENV{localappdata}/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/LocalState/games/com.mojang/amethyst/") 
         configure_file(mod.json.in "${AmethystFolder}/mods/${PROJECT_NAME}@${MOD_VERSION}/mod.json" @ONLY)
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${AmethystFolder}/mods/${PROJECT_NAME}@${MOD_VERSION}")
+        set(AMETHYST_SRC "$ENV{amethyst_src}/amethyst")
 endif()
 
 # Define only RelWithDebInfo as the available build configuration
@@ -44,7 +46,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE MOD_NAME="${PROJECT_NAME}")
 target_link_libraries(${PROJECT_NAME} PRIVATE
         AmethystAPI
         libhat
-        $ENV{amethyst_src}/AmethystAPI/lib/fmt.lib
+        ${AMETHYST_SRC}/AmethystAPI/lib/fmt.lib
 )
 
 # Enable multi processor compilation for C++, to make it go brrrrrr
@@ -56,8 +58,5 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 target_compile_definitions(${PROJECT_NAME} PUBLIC ENTT_PACKED_PAGE=128)
 
 # Get the AmethystAPI Lib
-if (CI_CD_BUILD)
-        add_subdirectory("${CMAKE_SOURCE_DIR}/amethyst/AmethystAPI" "build")
-else()
-        add_subdirectory("$ENV{amethyst_src}/AmethystAPI" "build")
-endif()
+add_subdirectory("${AMETHYST_SRC}/AmethystAPI" "build")
+
