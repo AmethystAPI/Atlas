@@ -8,6 +8,8 @@
 #include <minecraft/src-client/common/client/gui/gui/GuiData.hpp>
 #include <amethyst/runtime/ModContext.hpp>
 
+extern std::shared_ptr<Minimap> minimap;
+
 Vec3 unitQuad[4] = {
     Vec3(0.0f, 0.0f, 0.0f),
     Vec3(0.0f, 1.0f, 0.0f),
@@ -313,11 +315,13 @@ void Minimap::onChunkUnloaded(LevelChunk& lc)
 
 void Minimap::onSubChunkLoaded(ChunkSource& source, LevelChunk& lc, short, bool)
 {
+    if (!minimap) return;
     mChunkDrawDeferList.insert(lc.mPosition.packed);
 }
 
 // Some server softwares don't support sending in SubChunks, so this fixes the edge case where they send full chunks at once.
 void Minimap::onChunkLoaded(ChunkSource& source, LevelChunk& lc)
 {
+    if (!minimap) return;
     mChunkDrawDeferList.insert(lc.mPosition.packed);
 }
