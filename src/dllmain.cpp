@@ -1,15 +1,15 @@
-﻿#include "dllmain.h"
-#include "minimap/Minimap.h"
+﻿#include "dllmain.hpp"
+#include "minimap/Minimap.hpp"
 #include <amethyst/runtime/events/GameEvents.hpp>
-#include <amethyst/runtime/events/RenderingEvents.hpp>
-#include <amethyst/runtime/events/ModEvents.hpp>
-#include <minecraft/src/common/world/level/BlockSource.hpp>
-#include <minecraft/src-client/common/client/gui/ScreenView.hpp>
-#include <minecraft/src-client/common/client/gui/gui/VisualTree.hpp>
-#include <minecraft/src-client/common/client/gui/gui/UIControl.hpp>
 #include <amethyst/runtime/events/InputEvents.hpp>
+#include <amethyst/runtime/events/ModEvents.hpp>
+#include <amethyst/runtime/events/RenderingEvents.hpp>
 #include <chrono>
+#include <minecraft/src-client/common/client/gui/ScreenView.hpp>
+#include <minecraft/src-client/common/client/gui/gui/UIControl.hpp>
+#include <minecraft/src-client/common/client/gui/gui/VisualTree.hpp>
 #include <minecraft/src/common/Minecraft.hpp>
+#include <minecraft/src/common/world/level/BlockSource.hpp>
 
 std::shared_ptr<Minimap> minimap;
 bool isInWorld = false;
@@ -20,13 +20,13 @@ void AfterRenderUi(AfterRenderUIEvent& event)
     if (!minimap) return;
 
     // Only render the UI on the "hud_screen" element.
-    if (event.screen.visualTree->mRootControlName->mName == "hud_screen") 
-    {
+    if (event.screen.visualTree->mRootControlName->mName == "hud_screen") {
         minimap->Render(event.ctx);
     }
 }
 
-void DestroyMinimap() {
+void DestroyMinimap()
+{
     ClientInstance* client = Amethyst::GetContext().mClientInstance;
     BlockSource* region = client->getRegion();
 
@@ -45,12 +45,14 @@ void OnRequestLeaveGame(OnRequestLeaveGameEvent& event)
     DestroyMinimap();
 }
 
-void RegisterInputs(RegisterInputsEvent& event) {
-    event.inputManager.RegisterNewInput("map_zoom_in", { 0xBB });
-    event.inputManager.RegisterNewInput("map_zoom_out", { 0xBD });
+void RegisterInputs(RegisterInputsEvent& event)
+{
+    event.inputManager.RegisterNewInput("map_zoom_in", {0xBB});
+    event.inputManager.RegisterNewInput("map_zoom_out", {0xBD});
 }
 
-void OnStartJoinGame(OnStartJoinGameEvent& event) {
+void OnStartJoinGame(OnStartJoinGameEvent& event)
+{
     isInWorld = true;
     auto& inputs = *Amethyst::GetContext().mInputManager;
 
@@ -91,4 +93,4 @@ ModFunction void Initialize(AmethystContext& ctx)
     events.AddListener<RegisterInputsEvent>(&RegisterInputs);
     events.AddListener<OnStartJoinGameEvent>(&OnStartJoinGame);
     events.AddListener<OnLevelConstructedEvent>(&OnLevelConstructed);
-} 
+}

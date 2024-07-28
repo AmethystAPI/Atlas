@@ -1,4 +1,4 @@
-#include "Minimap.h"
+#include "Minimap.hpp"
 #include <amethyst/runtime/ModContext.hpp>
 #include <minecraft/src-client/common/client/game/ClientInstance.hpp>
 #include <minecraft/src-client/common/client/gui/gui/GuiData.hpp>
