@@ -6,9 +6,9 @@
 #include <minecraft/src-client/common/client/renderer/screen/MinecraftUIRenderContext.hpp>
 #include <minecraft/src-deps/core/resource/ResourceHelper.hpp>
 #include <minecraft/src-deps/minecraftrenderer/renderer/Mesh.hpp>
-#include <minecraft/src/common/world/level/chunk/LevelChunk.hpp>
 #include <minecraft/src/common/world/level/LevelListener.hpp>
 #include <minecraft/src/common/world/level/block/Block.hpp>
+#include <minecraft/src/common/world/level/chunk/LevelChunk.hpp>
 #include <unordered_map>
 #include <unordered_set>
 
