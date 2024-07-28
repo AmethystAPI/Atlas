@@ -30,7 +30,7 @@ private:
 
 public:
     int mRenderDistance = 12;
-    int mMaxChunksToGeneratePerFrame = 16;
+    int mMaxChunksToGeneratePerFrame = 32;
     float mMinimapSize;
     float mMinimapEdgeBorder;
 
