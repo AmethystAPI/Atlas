@@ -1,8 +1,0 @@
-BreakBeforeBraces: Stroustrup
-IndentWidth: 4
-AllowShortIfStatementsOnASingleLine: true
-ColumnLimit: 0
-PointerAlignment: Left
-AccessModifierOffset: -4
-BreakConstructorInitializers: BeforeColon
-ConstructorInitializerIndentWidth: 4

@@ -1,0 +1,49 @@
+{
+	"$schema": "https://raw.githubusercontent.com/Bedrock-OSS/regolith-schemas/main/config/v1.4.json",
+	"author": "theaddonn <theaddonn@gmail.com>, FrederoxDev, OuterCloud",
+	"name": "Atlas",
+	"packs": {
+		"resourcePack": "./packs/RP",
+		"behaviorPack": "./packs/BP"
+	},
+	"regolith": {
+		"dataPath": "./packs/data",
+		"filterDefinitions": {
+			"regolith_generators": {
+				"url": "github.com/FrederoxDev/Regolith-Generators",
+				"version": "1.0.4"
+			}
+		},
+		"formatVersion": "1.4.0",
+		"profiles": {
+			"default": {
+				"export": {
+					"bpPath": "%localappdata%/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/LocalState/games/com.mojang/amethyst/mods/Amethyst-Template@0.0.0-dev/behavior_packs/main_bp",
+					"build": "standard",
+					"readOnly": false,
+					"rpPath": "%localappdata%/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/LocalState/games/com.mojang/amethyst/mods/Amethyst-Template@0.0.0-dev/resource_packs/main_rp",
+					"target": "exact"
+				},
+				"filters": [
+					{
+						"filter": "regolith_generators"
+					}
+				]
+			},
+			"local": {
+				"export": {
+					"bpPath": "../dist/behavior_packs/main_bp",
+					"build": "standard",
+					"readOnly": false,
+					"rpPath": "../dist/resource_packs/main_rp",
+					"target": "exact"
+				},
+				"filters": [
+					{
+						"profile": "default"
+					}
+				]
+			}
+		}
+	}
+}

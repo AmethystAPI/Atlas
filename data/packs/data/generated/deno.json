@@ -1,0 +1,12 @@
+{
+    "imports": {
+        "Regolith-Generators": "jsr:@frederoxdev/regolith-generators",
+        "@/RP/": "../../RP/",
+        "@/BP/": "../../BP/"
+    },
+    "compilerOptions": {
+        "jsx": "react",
+        "jsxFactory": "createMinecraftElement",
+        "jsxFragmentFactory": "createMinecraftFragment"
+    }
+}  

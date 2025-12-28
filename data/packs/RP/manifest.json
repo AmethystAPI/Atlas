@@ -1,0 +1,29 @@
+{
+    "format_version": 2,
+    "header": {
+        "name": "Atlas RP",
+        "description": "By theaddonn <theaddonn@gmail.com>, FrederoxDev, OuterCloud",
+        "uuid": "0d94afaa-8d5e-40ab-8fc6-11f363222ff2",
+        "version": [
+            1,
+            0,
+            0
+        ],
+        "min_engine_version": [
+            1,
+            21,
+            0
+        ]
+    },
+    "modules": [
+        {
+            "type": "resources",
+            "uuid": "8d825bd5-cb51-4337-845b-0abe69dd1532",
+            "version": [
+                1,
+                0,
+                0
+            ]
+        }
+    ]
+}
